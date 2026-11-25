@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: lhpria_web
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=prms_db
+      - DB_USER=prms_user
+      - DB_PASS=prms_password_2026
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:10.11
+    container_name: lhpria_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_2026
+      MYSQL_DATABASE: prms_db
+      MYSQL_USER: prms_user
+      MYSQL_PASSWORD: prms_password_2026
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./land/prms_db.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password_2026"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:

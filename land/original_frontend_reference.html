@@ -1,0 +1,2191 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LHPRIA - Executive Dashboard & Workflow System</title>
+    <!-- Chart.js for Advanced Visual Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --accent-color: #d69e2e;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 43, 72, 0.92);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-card {
+            background: white;
+            padding: 30px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-card h2 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            font-size: 1.3rem;
+        }
+
+        .modal-card p {
+            color: #718096;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        .user-info-bar {
+            background-color: #edf2f7;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .user-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .notification-badge {
+            background-color: #e53e3e;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-change-pass {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            transition: background 0.2s;
+        }
+        .btn-change-pass:hover { background-color: #1a365d; }
+
+        .btn-logout {
+            background-color: #e53e3e;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            transition: background 0.2s;
+        }
+        .btn-logout:hover { background-color: #c53030; }
+
+        header {
+            background: linear-gradient(135deg, #0f2b48 0%, var(--primary-color) 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-container {
+            width: 85px;
+            height: 85px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .parent-admin {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.8px;
+            margin: 5px 0 2px 0;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #f7fafc;
+        }
+
+        header p {
+            font-size: 0.9rem;
+            color: #cbd5e0;
+            margin: 0;
+        }
+
+        @keyframes zoomPulseSevenSeconds {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); background-color: #feebc8; border-color: #dd6b20; box-shadow: 0 6px 18px rgba(221,107,32,0.3); }
+            100% { transform: scale(1); }
+        }
+
+        .countdown-banner {
+            background-color: #fffaf0;
+            border: 1px solid #feebc8;
+            color: #c05621;
+            padding: 12px 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .countdown-banner.animating {
+            animation: zoomPulseSevenSeconds 1.4s ease-in-out 5;
+        }
+
+        .countdown-banner.alert-state {
+            background-color: #fff5f5;
+            border-color: #feb2b2;
+            color: #c53030;
+            font-size: 1.15rem;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 900px) {
+            .grid-layout {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 9px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            height: 75px;
+            line-height: 1.5;
+        }
+
+        .side-by-side {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-submit {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-submit:hover:not(:disabled) { background-color: var(--secondary-color); }
+        .btn-submit:disabled { background-color: #a0aec0; cursor: not-allowed; }
+
+        .btn-cancel {
+            background-color: #718096;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+        .btn-cancel:hover { background-color: #4a5568; }
+
+        .btn-section-save {
+            background-color: #319795;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: 6px;
+        }
+        .btn-section-save:hover { background-color: #2c7a7b; }
+
+        .badge-green { background-color: #c6f6d5; color: #22543d; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        .badge-yellow { background-color: #feebc8; color: #742a2a; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        .badge-red { background-color: #fed7d7; color: #c53030; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .metric-box {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .metric-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .metric-box.revenue { background-color: #f0fff4; border-color: #c6f6d5; }
+        .metric-box.land { background-color: #fffaf0; border-color: #feebc8; }
+        .metric-box.digital { background-color: #faf5ff; border-color: #e9d8fd; }
+        .metric-box.crprs { background-color: #e6fffa; border-color: #b2f5ea; }
+        .metric-box.eland { background-color: #fff5f5; border-color: #fed7d7; }
+
+        .metric-box .number {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            word-break: break-word;
+        }
+
+        .metric-box .label {
+            font-size: 0.75rem;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            margin-bottom: 15px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 11px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #edf2f7;
+            color: var(--primary-color);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+            font-size: 0.8rem;
+            margin-top: 40px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .brand-credit {
+            font-size: 0.7rem;
+            color: #cbd5e0;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+            font-weight: 300;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-card">
+            <h2>ሲስተሙን ለመጠቀም ይግቡ</h2>
+            <p>LHPRIA - Executive Dashboard System</p>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="usernameInput">የተጠቃሚ ስም</label>
+                    <input type="text" id="usernameInput" required>
+                </div>
+                <div class="form-group">
+                    <label for="passwordInput">የምስጢር ቁጥር</label>
+                    <input type="password" id="passwordInput" required>
+                </div>
+                <button type="submit" class="btn-submit" style="margin-top: 10px;">ግባ</button>
+            </form>
+            <div id="loginError" style="color: #e53e3e; font-size: 0.8rem; margin-top: 10px; display: none;">
+                የተጠቃሚ ስም ወይም ምስጢር ቁጥር ተሳስቷል!
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal-overlay" id="changePasswordModal" style="display: none;">
+        <div class="modal-card">
+            <h2>የምስጢር ቁጥር መቀየሪያ</h2>
+            <p id="changePassUserLabel">ተጠቃሚ፦ -</p>
+            <form id="changePasswordForm">
+                <div class="form-group">
+                    <label for="currentPasswordInput">የአሁኑ ምስጢር ቁጥር</label>
+                    <input type="password" id="currentPasswordInput" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPasswordInput">አዲስ ምስጢር ቁጥር</label>
+                    <input type="password" id="newPasswordInput" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPasswordInput">አዲሱን ምስጢር ቁጥር ያረጋግጡ</label>
+                    <input type="password" id="confirmPasswordInput" required>
+                </div>
+                <button type="submit" class="btn-submit">ምስጢር ቁጥር ቀይር</button>
+                <button type="button" class="btn-cancel" onclick="closeChangePasswordModal()">ሰርዝ</button>
+            </form>
+            <div id="passChangeError" style="color: #e53e3e; font-size: 0.8rem; margin-top: 10px; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Active User Bar -->
+    <div class="user-info-bar" id="userInfoBar" style="display: none;">
+        <div>የገባው ተጠቃሚ፦ <b id="loggedInUserLabel">-</b></div>
+        <div class="user-controls">
+            <div id="notificationArea" style="display:none;">
+                <span class="notification-badge" id="notifBadge" onclick="showAlertPopup()" title="ማሳሰቢያዎች አሉ። ለማየት ይጫኑ">🔔 <span id="notifCount">0</span></span>
+            </div>
+            <button class="btn-change-pass" onclick="openChangePasswordModal()" title="የምስጢር ቁጥር ለመቀየር ይህን ይጫኑ">🔑 ፓስወርድ ቀይር</button>
+            <button class="btn-logout" onclick="logout()" title="ከሲስተሙ ለመውጣት ይህን ይጫኑ">ውጣ</button>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo-container" id="logoContainer" onclick="document.getElementById('logoUpload').click()" title="የኤጀንሲውን ሎጎ ለመቀየር እዚህ ይጫኑ">
+            <span id="logoPlaceholder" style="font-size: 0.7rem; color: #718096; text-align: center;">ሎጎ</span>
+        </div>
+        <input type="file" id="logoUpload" accept="image/*" style="display: none;">
+
+        <div class="parent-admin">በአዲስ አበባ ከተማ አስተዳደር</div>
+        <h1>የመሬት ይዞታና መሬት ነክ ንብረት ምዝገባ እና መረጃ ኤጀንሲ (LHPRIA)</h1>
+        <p>የዕለታዊ ሪፖርት፣ እቅድ፣ ገቢ፣ የተገልጋይ ፍሰት እና አፈፃፀም መከታተያ ዳሽቦርድ</p>
+    </header>
+
+    <div class="container">
+        <!-- Countdown Banner -->
+        <div class="countdown-banner animating" id="countdownBanner" title="የ 90 ቀናት እቅድ ማጠናቀቂያ ጊዜ ሰሌዳ">
+            ⌛ የ90 ቀናት እቅድ ሪፖርት ማጠናቀቂያ (ከጥቅምት 1 እስከ ታህሳስ 30) - ቀሪ ጊዜ እየተሰላ ነው...
+        </div>
+
+        <!-- Metrics Summary Cards -->
+        <div class="metrics-grid" id="metricsGridContainer">
+            <div class="metric-box" id="cardTotalReports" title="አጠቃላይ የጸደቁ ሪፖርቶች ብዛት">
+                <div class="number" id="totalReports">0</div>
+                <div class="label">የፀደቁ ሪፖርቶች</div>
+            </div>
+            <div class="metric-box" id="cardTotalCustomers" title="ጠቅላላ አገልግሎት ያገኙ ተገልጋዮች ብዛት">
+                <div class="number" id="totalCustomers">0</div>
+                <div class="label">ጠቅላላ ተገልጋዮች</div>
+            </div>
+            <div class="metric-box revenue" id="cardTotalRevenue" title="በክፍለ ከተሞች የተሰበሰበ አጠቃላይ ገቢ">
+                <div class="number" id="totalRevenue">0 ብር</div>
+                <div class="label">የተሰበሰበ ገቢ</div>
+            </div>
+            <div class="metric-box land" id="cardTotalLand" title="ጠቅላላ የተረጋገጡ ይዞታዎች ብዛት">
+                <div class="number" id="totalLandVerified">0</div>
+                <div class="label">የይዞታ ማረጋገጥ</div>
+            </div>
+            <div class="metric-box digital" id="cardTotalDigital" title="ጠቅላላ ዲጂታላይዝ የተደረጉ ሰነዶች/ይዞታዎች">
+                <div class="number" id="totalDigitalized">0</div>
+                <div class="label">የዲጂታላይዜሽን</div>
+            </div>
+            <div class="metric-box crprs" id="cardTotalCrprs" title="የ CRPRS አገልግሎቶች ጠቅላላ ድምር">
+                <div class="number" id="totalCrprs">0</div>
+                <div class="label">የ CRPRS</div>
+            </div>
+            <div class="metric-box eland" id="cardTotalEland" title="የኢላንድ ስራዎች አጠቃላይ ድምር">
+                <div class="number" id="totalEland">0</div>
+                <div class="label">የኢላንድ</div>
+            </div>
+            <div class="metric-box" id="cardTopWorkflow" title="ከፍተኛ የስራ ፍሰት የተመዘገበበት ክፍለ ከተማና አገልግሎት">
+                <div class="number" id="topSubCityAndService">-</div>
+                <div class="label">ከፍተኛ የስራ ፍሰት</div>
+            </div>
+        </div>
+
+        <div class="grid-layout">
+            <!-- Form Card: For SubCity Preparer -->
+            <div class="card" id="formCard" style="display:none;">
+                <h2 id="formTitle">ዕለታዊ ሪፖርት ማቀበያ ቅጽ (ጥቅምት፣ ህዳር፣ ታህሳስ እቅዶች)</h2>
+                <form id="reportForm">
+                    <input type="hidden" id="editReportId" value="">
+                    
+                    <div class="form-group">
+                        <label for="preparerName">ሪፖርቱን ያዘጋጀው ባለሙያ ስም *</label>
+                        <input type="text" id="preparerName" readonly style="background-color: #edf2f7; font-weight: bold;" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reportDate">ቀን *</label>
+                        <input type="date" id="reportDate" required oninput="validateFormCompleteness()">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subCity">ክፍለ ከተማ *</label>
+                        <select id="subCity" required onchange="validateFormCompleteness()">
+                            <option value="">-- ክፍለ ከተማ ይምረጡ --</option>
+                            <option value="አራዳ">አራዳ</option>
+                            <option value="ቂርቆስ">ቂርቆስ</option>
+                            <option value="ልደታ">ልደታ</option>
+                            <option value="አዲስ ከተማ">አዲስ ከተማ</option>
+                            <option value="ቦሌ">ቦሌ</option>
+                            <option value="አቃቂ ቃሊቲ">አቃቂ ቃሊቲ</option>
+                            <option value="የካ">የካ</option>
+                            <option value="ኮልፌ ቀራኒዮ">ኮልፌ ቀራኒዮ</option>
+                            <option value="ንፋስ ስልክ ላፍቶ">ንፋስ ስልክ ላፍቶ</option>
+                            <option value="ጉለሌ">ጉለሌ</option>
+                            <option value="ለሚ ኩራ">ለሚ ኩራ</option>
+                        </select>
+                    </div>
+
+                    <!-- 1. የይዞታ ማረጋገጥ -->
+                    <div style="background: #fffaf0; border: 1px solid #feebc8; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 0.95rem; color: #c05621;">1. የይዞታ ማረጋገጥ ስራዎች</h3>
+                        <div class="form-group">
+                            <select id="landVerificationTask" onchange="onLandTaskChange(); validateFormCompleteness();">
+                                <option value="">-- የይዞታ ማረጋገጥ ተግባር ይምረጡ --</option>
+                                <option value="1. የቅድመ ዝግጅት ስራዎችን">1. የቅድመ ዝግጅት ስራዎችን</option>
+                                <option value="2. የግንዛቤ ፈጠራ ስራዎች">2. የግንዛቤ ፈጠራ ስራዎች</option>
+                                <option value="3. የህዝብ ታዛቢና ቅሬታ ሰሚ ማስመረጥ">3. የህዝብ ታዛቢና ቅሬታ ሰሚ ማስመረጥ</option>
+                                <option value="4. ይረጋገጥልኝ ጥያቄ መቀበል">4. ይረጋገጥልኝ ጥያቄ መቀበል</option>
+                                <option value="5. የማህደራትን ኮፒ ከመብት ፈጣሪው ተቋም መቀበል">5. የማህደራትን ኮፒ ከመብት ፈጣሪው ተቋም መቀበል</option>
+                                <option value="6. የመስክ ወሰን ማካለል ስራ መስራት">6. የመስክ ወሰን ማካለል ስራ መስራት</option>
+                                <option value="7. የመስክ ቅየሳ ስራ መስራት">7. የመስክ ቅየሳ ስራ መስራት</option>
+                                <option value="8. የይዞታዎችን ማህደር ማደራጀት">8. የይዞታዎችን ማህደር ማደራጀት</option>
+                                <option value="10. የተረጋገጡ ማህደረሠት">10. የተረጋገጡ ማህደረሠት</option>
+                                <option value="11. ብቁ የሆኑ የግል ይዞታዎች">11. ብቁ የሆኑ የግል ይዞታዎች</option>
+                                <option value="12. ብቁ የሆኑ የመንግስት ይዞታዎች">12. ብቁ የሆኑ የመንግስት ይዞታዎች</option>
+                                <option value="13. ሌላ">13. ሌላ</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.78rem;">የእቅድ እና አፈፃፀም መለኪያ ዓይነት</label>
+                            <select id="landMetricType" onchange="onMetricTypeChange('land')">
+                                <option value="number">በቁጥር (Number)</option>
+                                <option value="percent">በፐርሰንት (%)</option>
+                            </select>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom:8px;">
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የጥቅምት እቅድ</label><input type="number" id="landOctPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcLandTotalPlan()"></div>
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የህዳር እቅድ</label><input type="number" id="landNovPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcLandTotalPlan()"></div>
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የታህሳስ እቅድ</label><input type="number" id="landDecPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcLandTotalPlan()"></div>
+                        </div>
+                        <div class="side-by-side">
+                            <div class="form-group"><label>አጠቃላይ 90 ቀናት እቅድ (ድምር)</label><input type="number" id="land90DaysPlan" readonly style="background-color:#edf2f7; font-weight:bold;" placeholder="0"></div>
+                            <div class="form-group"><label>የዕለት አፈፃፀም</label><input type="number" id="landDailyActual" min="0" placeholder="0" onwheel="this.blur()" oninput="checkThresholdAlerts('land'); validateFormCompleteness();"></div>
+                        </div>
+                        <div id="landAlarmBadge" style="display:none; margin-top:5px; font-size:0.75rem; color:#c53030; font-weight:bold;">🚨 አላርም፦ አፈፃፀሙ ከ 50% በታች ወርዷል!</div>
+                        <button type="button" class="btn-section-save" onclick="saveSectionData('land')">💾 የይዞታ ማረጋገጥ አስቀምጥ</button>
+                    </div>
+
+                    <!-- 2. የተሰጠ ዋና የአገልግሎት ዓይነት -->
+                    <div style="background: #ebf8ff; border: 1px solid #bee3f8; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 0.95rem; color: var(--primary-color);">2. የተሰጠ ዋና የአገልግሎት ዓይነት</h3>
+                        <div class="form-group">
+                            <select id="serviceTypeSelect" onchange="handleServiceChange(); validateFormCompleteness();">
+                                <option value="">-- አገልግሎት ይምረጡ --</option>
+                                <option value="ስም ዝውውር">ስም ዝውውር</option>
+                                <option value="የባንክ እዳ ምዝገባና ስረዛ">የባንክ እዳ ምዝገባና ስረዛ</option>
+                                <option value="የፍርድ ቤት እዳ እገዳ">የፍርድ ቤት እዳ እገዳ</option>
+                                <option value="የካርታ ቅጅ መስጠት">የካርታ ቅጅ መስጠት</option>
+                                <option value="መረጃ ወቅታዊ ማድረግ">መረጃ ወቅታዊ ማድረግ</option>
+                                <option value="ለፍትህ ተቋማት ምላሽ መስጠት">ለፍትህ ተቋማት ምላሽ መስጠት</option>
+                                <option value="ይካፈልልኝ">ይካፈልልኝ</option>
+                                <option value="ይካተትልኝ">ይካተትልኝ</option>
+                                <option value="ግብር ተመን">ግብር ተመን</option>
+                                <option value="ወሰን ችካል">ወሰን ችካል</option>
+                                <option value="አገልግሎት ለውጥ">አገልግሎት ለውጥ</option>
+                                <option value="ምትክ ካርታ መስጠት">ምትክ ካርታ መስጠት</option>
+                                <option value="ሌላ">ሌላ</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="customServiceGroup" style="display: none;">
+                            <label for="customService">ሌላ አገልግሎት ይጻፉ</label>
+                            <input type="text" id="customService" oninput="validateFormCompleteness()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.78rem;">የእቅድ እና አፈፃፀም መለኪያ ዓይነት</label>
+                            <select id="serviceMetricType" onchange="onMetricTypeChange('service')">
+                                <option value="number">በቁጥር (Number)</option>
+                                <option value="percent">በፐርሰንት (%)</option>
+                            </select>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom:8px;">
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የጥቅምት እቅድ</label><input type="number" id="serviceOctPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcServiceTotalPlan()"></div>
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የህዳር እቅድ</label><input type="number" id="serviceNovPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcServiceTotalPlan()"></div>
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የታህሳስ እቅድ</label><input type="number" id="serviceDecPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcServiceTotalPlan()"></div>
+                        </div>
+                        <div class="side-by-side">
+                            <div class="form-group"><label>አጠቃላይ 90 ቀናት እቅድ (ድምር)</label><input type="number" id="service90DaysPlan" readonly style="background-color:#edf2f7; font-weight:bold;" placeholder="0"></div>
+                            <div class="form-group"><label>የዕለት አፈፃፀም (ተገልጋይ/ብዛት)</label><input type="number" id="serviceDailyActual" min="0" placeholder="0" onwheel="this.blur()" oninput="checkThresholdAlerts('service'); validateFormCompleteness();"></div>
+                        </div>
+                        <div id="serviceAlarmBadge" style="display:none; margin-top:5px; font-size:0.75rem; color:#c53030; font-weight:bold;">🚨 አላርም፦ አፈፃፀሙ ከ 50% በታች ወርዷል!</div>
+                        <button type="button" class="btn-section-save" onclick="saveSectionData('service')">💾 የአገልግሎት ስራ አስቀምጥ</button>
+                    </div>
+
+                    <!-- 3. የዲጂታላይዜሽን ስራዎች -->
+                    <div style="background: #faf5ff; border: 1px solid #e9d8fd; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 0.95rem; color: #6b46c1;">3. የዲጂታላይዜሽን ስራዎች</h3>
+                        <div class="form-group">
+                            <select id="digitizationTask" onchange="onDigitalTaskChange(); validateFormCompleteness();">
+                                <option value="">-- የዲጂታላይዜሽን ስራ ይምረጡ --</option>
+                                <option value="1. ጂኦሪፈረንስ የተደረጉ ይዞታዎች ብዛት">1. ጂኦሪፈረንስ የተደረጉ ይዞታዎች ብዛት</option>
+                                <option value="2. ማይግሬት የተደረጉ ይዞታዎች ብዛት">2. ማይግሬት የተደረጉ ይዞታዎች ብዛት</option>
+                                <option value="3. ስካን የተደረጉ ማህደረሠት ብዛት">3. ስካን የተደረጉ ማህደረሠት ብዛት</option>
+                                <option value="4. የተሳሰሩ ይዞታዎች ብዛት">4. የተሳሰሩ ይዞታዎች ብዛት</option>
+                                <option value="5. ተረጋግጠው የተመዘገቡ ይዞታዎች ብዛት">5. ተረጋግጠው የተመዘገቡ ይዞታዎች ብዛት</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.78rem;">የእቅድ እና አፈፃፀም መለኪያ ዓይነት</label>
+                            <select id="digitalMetricType" onchange="onMetricTypeChange('digital')">
+                                <option value="number">በቁጥር (Number)</option>
+                                <option value="percent">በፐርሰንት (%)</option>
+                            </select>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom:8px;">
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የጥቅምት እቅድ</label><input type="number" id="digitalOctPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcDigitalTotalPlan()"></div>
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የህዳር እቅድ</label><input type="number" id="digitalNovPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcDigitalTotalPlan()"></div>
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የታህሳስ እቅድ</label><input type="number" id="digitalDecPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcDigitalTotalPlan()"></div>
+                        </div>
+                        <div class="side-by-side">
+                            <div class="form-group"><label>አጠቃላይ 90 ቀናት እቅድ (ድምር)</label><input type="number" id="digital90DaysPlan" readonly style="background-color:#edf2f7; font-weight:bold;" placeholder="0"></div>
+                            <div class="form-group"><label>የዕለት አፈፃፀም (ፋይል ብዛት)</label><input type="number" id="digitalDailyActual" min="0" placeholder="0" onwheel="this.blur()" oninput="checkThresholdAlerts('digital'); validateFormCompleteness();"></div>
+                        </div>
+                        <div id="digitalAlarmBadge" style="display:none; margin-top:5px; font-size:0.75rem; color:#c53030; font-weight:bold;">🚨 አላርም፦ አፈፃፀሙ ከ 50% በታች ወርዷል!</div>
+                        <button type="button" class="btn-section-save" onclick="saveSectionData('digital')">💾 የዲጂታላይዜሽን ስራ አስቀምጥ</button>
+                    </div>
+
+                    <!-- 4. የኢላንድ ስራዎች -->
+                    <div style="background: #fff5f5; border: 1px solid #fed7d7; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 0.95rem; color: #c53030;">4. የኢላንድ ስራዎች</h3>
+                        <div class="form-group">
+                            <select id="elandSubCategory" onchange="onElandTaskChange(); validateFormCompleteness();">
+                                <option value="">-- የኢላንድ ዝርዝር ይምረጡ --</option>
+                                <option value="ኮንደሚኒየም">ኮንደሚኒየም</option>
+                                <option value="ሪልስቴት">ሪልስቴት</option>
+                                <option value="አፓርታማ">አፓርታማ</option>
+                                <option value="ይዞታ">ይዞታ</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.78rem;">የእቅድ እና አፈፃፀም መለኪያ ዓይነት</label>
+                            <select id="elandMetricType" onchange="onMetricTypeChange('eland')">
+                                <option value="number">በቁጥር (Number)</option>
+                                <option value="percent">በፐርሰንት (%)</option>
+                            </select>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom:8px;">
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የጥቅምት እቅድ</label><input type="number" id="elandOctPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcElandTotalPlan()"></div>
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የህዳር እቅድ</label><input type="number" id="elandNovPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcElandTotalPlan()"></div>
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የታህሳስ እቅድ</label><input type="number" id="elandDecPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcElandTotalPlan()"></div>
+                        </div>
+                        <div class="side-by-side">
+                            <div class="form-group"><label>አጠቃላይ 90 ቀናት እቅድ (ድምር)</label><input type="number" id="eland90DaysPlan" readonly style="background-color:#edf2f7; font-weight:bold;" placeholder="0"></div>
+                            <div class="form-group"><label>የዕለት አፈፃፀም</label><input type="number" id="elandDailyActual" min="0" placeholder="0" onwheel="this.blur()" oninput="checkThresholdAlerts('eland'); validateFormCompleteness();"></div>
+                        </div>
+                        <div id="elandAlarmBadge" style="display:none; margin-top:5px; font-size:0.75rem; color:#c53030; font-weight:bold;">🚨 አላርም፦ አፈፃፀሙ ከ 50% በታች ወርዷል!</div>
+                        <button type="button" class="btn-section-save" onclick="saveSectionData('eland')">💾 የኢላንድ ስራ አስቀምጥ</button>
+                    </div>
+
+                    <!-- 5. CRPRS -->
+                    <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 0.95rem; color: #234e52;">5. የ CRPRS ስራዎች</h3>
+                        <div class="form-group">
+                            <select id="crprsTaskSelect" onchange="onCrprsTaskChange(); validateFormCompleteness();">
+                                <option value="">-- የ CRPRS አገልግሎት ይምረጡ --</option>
+                                <option value="ስም ዝውውር">ስም ዝውውር</option>
+                                <option value="የባንክ እዳ ምዝገባና ስረዛ">የባንክ እዳ ምዝገባና ስረዛ</option>
+                                <option value="የፍርድ ቤት እዳ እገዳ">የፍርድ ቤት እዳ እገዳ</option>
+                                <option value="የካርታ ቅጅ መስጠት">የካርታ ቅጅ መስጠት</option>
+                                <option value="መረጃ ወቅታዊ ማድረግ">መረጃ ወቅታዊ ማድረግ</option>
+                                <option value="ለፍትህ ተቋማት ምላሽ መስጠት">ለፍትህ ተቋማት ምላሽ መስጠት</option>
+                                <option value="ይካፈልልኝ">ይካፈልልኝ</option>
+                                <option value="ይካተትልኝ">ይካተትልኝ</option>
+                                <option value="ግብር ትመና">ግብር ትመና</option>
+                                <option value="ወሰን ችካል">ወሰን ችካል</option>
+                                <option value="አገልግሎት ለውጥ">አገልግሎት ለውጥ</option>
+                                <option value="ምትክ ካርታ መስጠት">ምትክ ካርታ መስጠት</option>
+                                <option value="ሌሎች">ሌሎች</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.78rem;">የእቅድ እና አፈፃፀም መለኪያ ዓይነት</label>
+                            <select id="crprsMetricType" onchange="onMetricTypeChange('crprs')">
+                                <option value="number">በቁጥር (Number)</option>
+                                <option value="percent">በፐርሰንት (%)</option>
+                            </select>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom:8px;">
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የጥቅምት እቅድ</label><input type="number" id="crprsOctPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcCrprsTotalPlan()"></div>
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የህዳር እቅድ</label><input type="number" id="crprsNovPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcCrprsTotalPlan()"></div>
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የታህሳስ እቅድ</label><input type="number" id="crprsDecPlan" min="0" placeholder="0" onwheel="this.blur()" oninput="calcCrprsTotalPlan()"></div>
+                        </div>
+                        <div class="side-by-side">
+                            <div class="form-group"><label>አጠቃላይ 90 ቀናት እቅድ (ድምር)</label><input type="number" id="crprs90DaysPlan" readonly style="background-color:#edf2f7; font-weight:bold;" placeholder="0"></div>
+                            <div class="form-group"><label>የዕለት አፈፃፀም</label><input type="number" id="crprsDailyActual" min="0" placeholder="0" onwheel="this.blur()" oninput="checkThresholdAlerts('crprs'); validateFormCompleteness();"></div>
+                        </div>
+                        <div id="crprsAlarmBadge" style="display:none; margin-top:5px; font-size:0.75rem; color:#c53030; font-weight:bold;">🚨 አላርም፦ አፈፃፀሙ ከ 50% በታች ወርዷል!</div>
+                        <button type="button" class="btn-section-save" onclick="saveSectionData('crprs')">💾 የ CRPRS ስራ አስቀምጥ</button>
+                    </div>
+
+                    <!-- 6. የተሰበሰበ ገቢ -->
+                    <div style="background: #f0fff4; border: 1px solid #c6f6d5; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 0.95rem; color: #22543d;">6. የተሰበሰበ ገቢ</h3>
+                        <div class="form-group">
+                            <select id="revenueCategory" onchange="validateFormCompleteness()">
+                                <option value="">-- የገቢ ምድብ ይምረጡ --</option>
+                                <option value="1. መደበኛ ገቢ">1. መደበኛ ገቢ</option>
+                                <option value="2. ትረስት ፈንድ">2. ትረስት ፈንድ</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.78rem;">የእቅድ እና አፈፃፀም መለኪያ ዓይነት</label>
+                            <select id="revenueMetricType" onchange="onMetricTypeChange('revenue')">
+                                <option value="number">በቁጥር (Number)</option>
+                                <option value="percent">በፐርሰንት (%)</option>
+                            </select>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom:8px;">
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የጥቅምት ገቢ (ብር)</label><input type="number" id="revenueOctPlan" min="0" step="0.01" placeholder="0.00" onwheel="this.blur()" oninput="calcRevTotalPlan()"></div>
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የህዳር ገቢ (ብር)</label><input type="number" id="revenueNovPlan" min="0" step="0.01" placeholder="0.00" onwheel="this.blur()" oninput="calcRevTotalPlan()"></div>
+                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.75rem;">የታህሳስ ገቢ (ብር)</label><input type="number" id="revenueDecPlan" min="0" step="0.01" placeholder="0.00" onwheel="this.blur()" oninput="calcRevTotalPlan()"></div>
+                        </div>
+                        <div class="side-by-side">
+                            <div class="form-group"><label>90 ቀናት የገቢ እቅድ (ድምር)</label><input type="number" id="revenue90DaysPlan" readonly style="background-color:#edf2f7; font-weight:bold;" placeholder="0.00"></div>
+                            <div class="form-group"><label>የዕለት ገቢ አፈፃፀም (ብር)</label><input type="number" id="revenueDailyActual" min="0" step="0.01" placeholder="0.00" onwheel="this.blur()" oninput="checkThresholdAlerts('revenue'); validateFormCompleteness();"></div>
+                        </div>
+                        <div id="revenueAlarmBadge" style="display:none; margin-top:5px; font-size:0.75rem; color:#c53030; font-weight:bold;">🚨 አላርም፦ አፈፃፀሙ ከ 50% በታች ወርዷል!</div>
+                        <button type="button" class="btn-section-save" onclick="saveSectionData('revenue')">💾 የገቢ ስራ አስቀምጥ</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="keyTasks">የተከናወኑ ዋና ዋና ተግባራት</label>
+                        <textarea id="keyTasks" placeholder=""></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="challenges">ያጋጠሙ ችግሮችና መፍትሔዎች</label>
+                        <textarea id="challenges" placeholder=""></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="submitBtn" disabled title="እባክዎ መጀመሪያ ሪፖርቱን ይሙሉ">ሪፖርት ለቅ/ጽ/ቤት ኃላፊ ላክ</button>
+                    <button type="button" class="btn-cancel" id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">ኤዲት ሰርዝ</button>
+                </form>
+            </div>
+
+            <!-- Approval Card: For SubCity Head -->
+            <div class="card" id="approvalCard" style="display:none;">
+                <h2>የቅ/ጽ/ቤት ኃላፊ ማጽደቂያ፣ ውድቅ ማድረጊያ እና ሪፖርት መገምገሚያ</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ቀን / አዘጋጅ</th>
+                                <th>የይዞታ ማረጋገጥ</th>
+                                <th>አገልግሎት</th>
+                                <th>ዲጂታላይዜሽን</th>
+                                <th>ኢላንድ</th>
+                                <th>CRPRS</th>
+                                <th>ገቢ</th>
+                                <th>ዋና ዋና ተግባራት</th>
+                                <th>ችግሮች</th>
+                                <th>ማዕከል አስተያየት</th>
+                                <th>ውሳኔ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approvalTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Graphical Dashboard Section -->
+            <div>
+                <!-- Time Filter Bar -->
+                <div class="card" style="margin-bottom: 20px; padding: 15px;">
+                    <h2 style="font-size: 1rem; margin-bottom: 10px;">የሪፖርት እና የሰመሪ ማጣሪያ</h2>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label for="timeFilter">የጊዜ ሰሌዳ ይምረጡ</label>
+                        <select id="timeFilter" onchange="toggleCustomDateInput()">
+                            <option value="all">አጠቃላይ 90 ቀናት ሰመሪ (በድምር)</option>
+                            <option value="today">የዕለት ሪፖርት</option>
+                            <option value="week">የሳምንት ሪፖርት</option>
+                            <option value="15days">የ 15 ቀናት ሪፖርት</option>
+                            <option value="month">የወር ሪፖርት (ጥቅምት/ህዳር/ታህሳስ)</option>
+                            <option value="custom">የተወሰነ ቀን መርጠው ማየት</option>
+                        </select>
+                    </div>
+
+                    <div id="customDateContainer" style="display: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size: 0.8rem;">ከየትኛው ቀን</label>
+                            <input type="date" id="startDateFilter" onchange="updateDashboard()">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size: 0.8rem;">እስከ መቼው ቀን</label>
+                            <input type="date" id="endDateFilter" onchange="updateDashboard()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HQ Executive Summary -->
+                <div class="card" id="hqSummaryCard" style="margin-bottom: 20px; display: none;">
+                    <h2 id="hqSummaryTitle">አስራአንዱም ክፍለ ከተሞች የጥቅምት፣ ህዳር እና ታህሳስ እቅድና አፈፃፀም ሰመሪ</h2>
+                    <p style="font-size: 0.78rem; color: #718096; margin-top:-5px; margin-bottom:10px;" id="hqSummaryDesc">
+                        * በማዕከል ደረጃ የሁሉም ክፍለ ከተሞች እቅድ እና አፈፃፀም በዝርዝር።
+                    </p>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr id="hqSummaryTableHead">
+                                    <th>ክፍለ ከተማ</th>
+                                    <th>1. ይዞታ ማረጋገጥ</th>
+                                    <th>2. አገልግሎት</th>
+                                    <th>3. ዲጂታላይዜሽን</th>
+                                    <th>4. ኢላንድ</th>
+                                    <th>5. CRPRS</th>
+                                    <th>6. ገቢ (ብር)</th>
+                                    <th>ዋና ዋና ተግባራት</th>
+                                    <th>ያጋጠሙ ችግሮች</th>
+                                    <th>ማዕከል አስተያየት</th>
+                                    <th>ሁኔታ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hqSubCitySummaryBody">
+                                <!-- Dynamically populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Color-Coded Performance vs Plan Chart -->
+                <div class="card" style="margin-bottom: 20px;" id="chartCard1">
+                    <h2>የአፈፃፀም እና የእቅድ ንጽጽር</h2>
+                    <div class="chart-container">
+                        <canvas id="planVsPerformanceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Workflow Summary Chart -->
+                <div class="card" style="margin-bottom: 20px;" id="chartCard2">
+                    <h2>የስራ ፍሰት ማዕከል ሰመሪ (በክፍለ ከተማ እና አገልግሎት)</h2>
+                    <div class="chart-container">
+                        <canvas id="workflowSummaryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Revenue Trend Chart -->
+                <div class="card" id="chartCard3">
+                    <h2>የዕለት ገቢ አሰባሰብ ሰመሪ</h2>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Approved Reports Table -->
+        <div class="card" style="margin-top: 25px;">
+            <h2 id="tableTitleLabel">የጸደቁ ሪፖርቶች እና እቅዶች መዝገብ</h2>
+            <div class="table-responsive">
+                <table id="reportsTable">
+                    <thead>
+                        <tr id="reportsTableHeadRow">
+                            <th>ቀን/ጊዜ</th>
+                            <th>ክ/ከተማ</th>
+                            <th>አዘጋጅ</th>
+                            <th>አገልግሎት</th>
+                            <th>ማረጋገጥ</th>
+                            <th>ዲጂታላይዜሽን</th>
+                            <th>ኢላንድ</th>
+                            <th>CRPRS</th>
+                            <th>ገቢ (ብር)</th>
+                            <th>ሁኔታ</th>
+                            <th>አፈፃፀም / 90 ቀናት እቅድ</th>
+                            <th>ክፍተቶችና ማስተካከያዎች</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 የመሬት ይዞታና መሬት ነክ ንብረት ምዝገባ እና መረጃ ኤጀንሲ (LHPRIA) - መብቱ በሕግ የተጠበቀ ነው</p>
+        <div class="brand-credit">Aha Soln</div>
+    </footer>
+
+    <script>
+        const defaultUserAccounts = {
+            "hq": { password: "123", name: "ዋና ዳይሬክተር", subCity: "", role: "hq" },
+            "hqp": { password: "hq@123", name: "የእቅድና በጀት ዳይሬክተር", subCity: "", role: "hq_director" },
+            
+            "land_dir": { password: "land@123", name: "የይዞታ ማረጋገጥ ዳይሬክተር", subCity: "", role: "land_director" },
+            "service_dir": { password: "service@123", name: "የአገልግሎትና ገቢ ዳይሬክተር", subCity: "", role: "service_director" },
+            "it_dir": { password: "it@123", name: "የአይቲ ዳይሬክተር", subCity: "", role: "it_director" },
+
+            "aradaP": { password: "arada@123", name: "አራዳ - ሪፖርት አዘጋጅ", subCity: "አራዳ", role: "preparer" },
+            "aradaH": { password: "arada@123", name: "አራዳ - የቅ/ጽ/ቤት ኃላፊ", subCity: "አራዳ", role: "approver" },
+            
+            "kirkosP": { password: "kirkos@123", name: "ቂርቆስ - ሪፖርት አዘጋጅ", subCity: "ቂርቆስ", role: "preparer" },
+            "kirkosH": { password: "kirkos@123", name: "ቂርቆስ - የቅ/ጽ/ቤት ኃላፊ", subCity: "ቂርቆስ", role: "approver" },
+
+            "lidetaP": { password: "lideta@123", name: "ልደታ - ሪፖርት አዘጋጅ", subCity: "ልደታ", role: "preparer" },
+            "lidetaH": { password: "lideta@123", name: "ልደታ - የቅ/ጽ/ቤት ኃላፊ", subCity: "ልደታ", role: "approver" },
+
+            "addisP": { password: "addis@123", name: "አዲስ ከተማ - ሪፖርት አዘጋጅ", subCity: "አዲስ ከተማ", role: "preparer" },
+            "addisH": { password: "addis@123", name: "አዲስ ከተማ - የቅ/ጽ/ቤት ኃላፊ", subCity: "አዲስ ከተማ", role: "approver" },
+
+            "boleP": { password: "bole@123", name: "ቦሌ - ሪፖርት አዘጋጅ", subCity: "ቦሌ", role: "preparer" },
+            "boleH": { password: "bole@123", name: "ቦሌ - የቅ/ጽ/ቤት ኃላፊ", subCity: "ቦሌ", role: "approver" },
+
+            "akakiP": { password: "akaki@123", name: "አቃቂ ቃሊቲ - ሪፖርት አዘጋጅ", subCity: "አቃቂ ቃሊቲ", role: "preparer" },
+            "akakiH": { password: "akaki@123", name: "አቃቂ ቃሊቲ - የቅ/ጽ/ቤት ኃላፊ", subCity: "አቃቂ ቃሊቲ", role: "approver" },
+
+            "yekaP": { password: "yeka@123", name: "የካ - ሪፖርት አዘጋጅ", subCity: "የካ", role: "preparer" },
+            "yekaH": { password: "yeka@123", name: "የካ - የቅ/ጽ/ቤት ኃላፊ", subCity: "የካ", role: "approver" },
+
+            "kolfeP": { password: "kolfe@123", name: "ኮልፌ ቀራኒዮ - ሪፖርት አዘጋጅ", subCity: "ኮልፌ ቀራኒዮ", role: "preparer" },
+            "kolfeH": { password: "kolfe@123", name: "ኮልፌ ቀራኒዮ - የቅ/ጽ/ቤት ኃላፊ", subCity: "ኮልፌ ቀራኒዮ", role: "approver" },
+
+            "nifasP": { password: "nifas@123", name: "ንፋስ ስልክ ላፍቶ - ሪፖርት አዘጋጅ", subCity: "ንፋስ ስልክ ላፍቶ", role: "preparer" },
+            "nifasH": { password: "nifas@123", name: "ንፋስ ስልክ ላፍቶ - የቅ/ጽ/ቤት ኃላፊ", subCity: "ንፋስ ስልክ ላፍቶ", role: "approver" },
+
+            "guleleP": { password: "gulele@123", name: "ጉለሌ - ሪፖርት አዘጋጅ", subCity: "ጉለሌ", role: "preparer" },
+            "guleleH": { password: "gulele@123", name: "ጉለሌ - የቅ/ጽ/ቤት ኃላፊ", subCity: "ጉለሌ", role: "approver" },
+
+            "lemiP": { password: "lemi@123", name: "ለሚ ኩራ - ሪፖርት አዘጋጅ", subCity: "ለሚ ኩራ", role: "preparer" },
+            "lemiH": { password: "lemi@123", name: "ለሚ ኩራ - የቅ/ጽ/ቤት ኃላፊ", subCity: "ለሚ ኩራ", role: "approver" }
+        };
+
+        let userAccounts = JSON.parse(localStorage.getItem('lhpria_user_accounts_v43')) || defaultUserAccounts;
+        let currentActiveUser = JSON.parse(sessionStorage.getItem('lhpria_session_user_v43')) || null;
+        let reportData = JSON.parse(localStorage.getItem('lhpria_reports_v63')) || [];
+        let masterPlans = JSON.parse(localStorage.getItem('lhpria_master_plans_v63')) || {};
+        let notificationsData = JSON.parse(localStorage.getItem('lhpria_notifications_v63')) || {};
+
+        let currentBannerState = 'COUNTDOWN_ANIMATING';
+        let planChartInstance = null;
+        let workflowChartInstance = null;
+        let revenueChartInstance = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuthStatus();
+
+            document.getElementById('loginForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                handleLogin();
+            });
+
+            document.getElementById('changePasswordForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                handleChangePassword();
+            });
+
+            document.getElementById('logoUpload').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        document.getElementById('logoContainer').innerHTML = `<img src="${event.target.result}" alt="Logo">`;
+                        localStorage.setItem('lhpria_official_logo', event.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            const savedLogo = localStorage.getItem('lhpria_official_logo');
+            if (savedLogo) {
+                document.getElementById('logoContainer').innerHTML = `<img src="${savedLogo}" alt="Logo">`;
+            }
+
+            document.getElementById('reportDate').valueAsDate = new Date();
+            updateDashboard();
+
+            document.getElementById('reportForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveReport();
+            });
+
+            updateCountdown();
+            setTimeout(() => {
+                currentBannerState = 'ALERT_TEXT';
+                updateCountdown();
+                setTimeout(() => {
+                    currentBannerState = 'COUNTDOWN_STATIC';
+                    updateCountdown();
+                }, 5000);
+            }, 7000);
+        });
+
+        function onMetricTypeChange(section) {
+            const type = document.getElementById(`${section}MetricType`).value;
+            const actInput = document.getElementById(`${section}DailyActual`);
+            if (type === 'percent') {
+                actInput.max = 100;
+                actInput.placeholder = "0 - 100 %";
+            } else {
+                actInput.removeAttribute('max');
+                actInput.placeholder = "0";
+            }
+        }
+
+        function calcLandTotalPlan() {
+            const oct = parseFloat(document.getElementById('landOctPlan').value) || 0;
+            const nov = parseFloat(document.getElementById('landNovPlan').value) || 0;
+            const dec = parseFloat(document.getElementById('landDecPlan').value) || 0;
+            const type = document.getElementById('landMetricType').value;
+            let sum = oct + nov + dec;
+            if (type === 'percent' && sum > 100) sum = 100;
+            document.getElementById('land90DaysPlan').value = sum;
+        }
+
+        function calcServiceTotalPlan() {
+            const oct = parseFloat(document.getElementById('serviceOctPlan').value) || 0;
+            const nov = parseFloat(document.getElementById('serviceNovPlan').value) || 0;
+            const dec = parseFloat(document.getElementById('serviceDecPlan').value) || 0;
+            const type = document.getElementById('serviceMetricType').value;
+            let sum = oct + nov + dec;
+            if (type === 'percent' && sum > 100) sum = 100;
+            document.getElementById('service90DaysPlan').value = sum;
+        }
+
+        function calcDigitalTotalPlan() {
+            const oct = parseFloat(document.getElementById('digitalOctPlan').value) || 0;
+            const nov = parseFloat(document.getElementById('digitalNovPlan').value) || 0;
+            const dec = parseFloat(document.getElementById('digitalDecPlan').value) || 0;
+            const type = document.getElementById('digitalMetricType').value;
+            let sum = oct + nov + dec;
+            if (type === 'percent' && sum > 100) sum = 100;
+            document.getElementById('digital90DaysPlan').value = sum;
+        }
+
+        function calcElandTotalPlan() {
+            const oct = parseFloat(document.getElementById('elandOctPlan').value) || 0;
+            const nov = parseFloat(document.getElementById('elandNovPlan').value) || 0;
+            const dec = parseFloat(document.getElementById('elandDecPlan').value) || 0;
+            const type = document.getElementById('elandMetricType').value;
+            let sum = oct + nov + dec;
+            if (type === 'percent' && sum > 100) sum = 100;
+            document.getElementById('eland90DaysPlan').value = sum;
+        }
+
+        function calcCrprsTotalPlan() {
+            const oct = parseFloat(document.getElementById('crprsOctPlan').value) || 0;
+            const nov = parseFloat(document.getElementById('crprsNovPlan').value) || 0;
+            const dec = parseFloat(document.getElementById('crprsDecPlan').value) || 0;
+            const type = document.getElementById('crprsMetricType').value;
+            let sum = oct + nov + dec;
+            if (type === 'percent' && sum > 100) sum = 100;
+            document.getElementById('crprs90DaysPlan').value = sum;
+        }
+
+        function calcRevTotalPlan() {
+            const oct = parseFloat(document.getElementById('revenueOctPlan').value) || 0;
+            const nov = parseFloat(document.getElementById('revenueNovPlan').value) || 0;
+            const dec = parseFloat(document.getElementById('revenueDecPlan').value) || 0;
+            const type = document.getElementById('revenueMetricType').value;
+            let sum = oct + nov + dec;
+            if (type === 'percent' && sum > 100) sum = 100;
+            document.getElementById('revenue90DaysPlan').value = sum.toFixed(2);
+        }
+
+        function validateFormCompleteness() {
+            const subCity = document.getElementById('subCity').value;
+            const landAct = document.getElementById('landDailyActual').value;
+            const serviceAct = document.getElementById('serviceDailyActual').value;
+            const digitalAct = document.getElementById('digitalDailyActual').value;
+            const elandAct = document.getElementById('elandDailyActual').value;
+            const crprsAct = document.getElementById('crprsDailyActual').value;
+            const revAct = document.getElementById('revenueDailyActual').value;
+
+            const submitBtn = document.getElementById('submitBtn');
+            if (subCity && (landAct || serviceAct || digitalAct || elandAct || crprsAct || revAct)) {
+                submitBtn.disabled = false;
+                submitBtn.title = "ሪፖርቱን ለማስረከብ እዚህ ይጫኑ";
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.title = "እባክዎ ቢያንስ አንዱን ስራ/አፈፃፀም ይሙሉ";
+            }
+        }
+
+        function checkAuthStatus() {
+            const loginModal = document.getElementById('loginModal');
+            const userInfoBar = document.getElementById('userInfoBar');
+            const loggedInLabel = document.getElementById('loggedInUserLabel');
+            const formCard = document.getElementById('formCard');
+            const approvalCard = document.getElementById('approvalCard');
+            const subCitySelect = document.getElementById('subCity');
+            const hqSummaryCard = document.getElementById('hqSummaryCard');
+            const notificationArea = document.getElementById('notificationArea');
+            
+            const cardRevenue = document.getElementById('cardTotalRevenue');
+            const cardLand = document.getElementById('cardTotalLand');
+            const cardDigital = document.getElementById('cardTotalDigital');
+            const cardCrprs = document.getElementById('cardTotalCrprs');
+            const cardEland = document.getElementById('cardTotalEland');
+            const cardWorkflow = document.getElementById('cardTopWorkflow');
+
+            const chart1 = document.getElementById('chartCard1');
+            const chart2 = document.getElementById('chartCard2');
+            const chart3 = document.getElementById('chartCard3');
+
+            if (currentActiveUser) {
+                loginModal.style.display = 'none';
+                userInfoBar.style.display = 'flex';
+                loggedInLabel.innerText = currentActiveUser.name;
+
+                if (cardRevenue) cardRevenue.style.display = 'block';
+                if (cardLand) cardLand.style.display = 'block';
+                if (cardDigital) cardDigital.style.display = 'block';
+                if (cardCrprs) cardCrprs.style.display = 'block';
+                if (cardEland) cardEland.style.display = 'block';
+                if (cardWorkflow) cardWorkflow.style.display = 'block';
+                if (chart1) chart1.style.display = 'block';
+                if (chart2) chart2.style.display = 'block';
+                if (chart3) chart3.style.display = 'block';
+
+                if (currentActiveUser.role === 'preparer') {
+                    formCard.style.display = 'block';
+                    approvalCard.style.display = 'none';
+                    hqSummaryCard.style.display = 'none';
+                    subCitySelect.value = currentActiveUser.subCity;
+                    subCitySelect.disabled = true;
+                    document.getElementById('preparerName').value = currentActiveUser.name;
+                    
+                    if (notificationArea) notificationArea.style.display = 'block';
+                    updateNotificationBadge();
+                } else if (currentActiveUser.role === 'approver') {
+                    formCard.style.display = 'none';
+                    approvalCard.style.display = 'block';
+                    hqSummaryCard.style.display = 'none';
+                    if (notificationArea) notificationArea.style.display = 'none';
+                    renderApprovals();
+                } else {
+                    formCard.style.display = 'none';
+                    approvalCard.style.display = 'none';
+                    hqSummaryCard.style.display = 'block';
+                    if (notificationArea) notificationArea.style.display = 'none';
+
+                    if (currentActiveUser.role === 'hq') {
+                        document.getElementById('hqSummaryTitle').innerText = "የዋና ዳይሬክተር እይታ - የሁሉም ክፍለ ከተሞች 6ቱ ዘርፎች እቅድና አፈፃፀም ሰመሪ";
+                        document.getElementById('hqSummaryDesc').innerText = "* የክፍለ ከተሞች 6ቱ ዋና ስራዎች፣ እቅድ፣ አፈፃፀም፣ ዋና ዋና ተግባራት እና አስተያየት መስጫ።";
+                    } else if (currentActiveUser.role === 'hq_director') {
+                        document.getElementById('hqSummaryTitle').innerText = "የእቅድና በጀት ዳይሬክቶሬት - የሁሉም ክፍለ ከተሞች 6ቱ ዋና ስራዎች ሰመሪ";
+                        document.getElementById('hqSummaryDesc').innerText = "* የሁሉም ክ/ከተሞች 6ቱ ዘርፎች አፈፃፀም እና ሪፖርቶች በዝርዝር።";
+                    } else if (currentActiveUser.role === 'land_director') {
+                        document.getElementById('hqSummaryTitle').innerText = "የይዞታ ማረጋገጥ ዳይሬክቶሬት - የይዞታ ማረጋገጥ ስራዎች አፈፃፀም";
+                        document.getElementById('hqSummaryDesc').innerText = "* የይዞታ ማረጋገጥ 13ቱ ዝርዝር ተግባራት እቅድና አፈፃፀም ማየትያ።";
+                        
+                        if (cardRevenue) cardRevenue.style.display = 'none';
+                        if (cardDigital) cardDigital.style.display = 'none';
+                        if (cardCrprs) cardCrprs.style.display = 'none';
+                        if (cardEland) cardEland.style.display = 'none';
+                        if (chart3) chart3.style.display = 'none';
+                    } else if (currentActiveUser.role === 'service_director') {
+                        document.getElementById('hqSummaryTitle').innerText = "የአገልግሎትና ገቢ ዳይሬክቶሬት - የአገልግሎት ተግባራት እና ገቢ ከእቅድ አንፃር";
+                        document.getElementById('hqSummaryDesc').innerText = "* አገልግሎቶች እና የተሰበሰበ ገቢ (ከእቅድ አንፃር)።";
+                        
+                        if (cardLand) cardLand.style.display = 'none';
+                        if (cardCrprs) cardCrprs.style.display = 'none';
+                        if (cardEland) cardEland.style.display = 'none';
+                    } else if (currentActiveUser.role === 'it_director') {
+                        document.getElementById('hqSummaryTitle').innerText = "የአይቲ ዳይሬክቶሬት - ኢላንድ፣ CRPRS እና ዲጂታላይዜሽን ሪፖርቶች ማየትያ";
+                        document.getElementById('hqSummaryDesc').innerText = "* የኢላንድ፣ CRPRS እና የዲጂታላይዜሽን ስራዎች ሪፖርት ማየትያ።";
+                        
+                        if (cardRevenue) cardRevenue.style.display = 'none';
+                        if (cardLand) cardLand.style.display = 'none';
+                        if (cardWorkflow) cardWorkflow.style.display = 'none';
+                        if (chart3) chart3.style.display = 'none';
+                    }
+                }
+            } else {
+                loginModal.style.display = 'flex';
+                userInfoBar.style.display = 'none';
+            }
+        }
+
+        function updateNotificationBadge() {
+            if (!currentActiveUser || currentActiveUser.role !== 'preparer') return;
+            const sc = currentActiveUser.subCity;
+            const list = notificationsData[sc] || [];
+            document.getElementById('notifCount').innerText = list.length;
+        }
+
+        function showAlertPopup() {
+            if (!currentActiveUser || currentActiveUser.role !== 'preparer') return;
+            const sc = currentActiveUser.subCity;
+            const list = notificationsData[sc] || [];
+            if (list.length === 0) {
+                alert("ምንም አዲስ ማሳሰቢያ/ውድቅ የተደረገ ሪፖርት የለም።");
+                return;
+            }
+            let msg = "🚨 የውድቅ የተደረጉ ሪፖርቶች ማሳሰቢያዎች:\n\n";
+            list.forEach((n, idx) => {
+                msg += `${idx + 1}. ቀን: ${n.date} | አገልግሎት: ${n.service} | 🛑 ምክንያት: ${n.reason}\n`;
+            });
+            alert(msg);
+            // Clear notifications after viewing
+            notificationsData[sc] = [];
+            localStorage.setItem('lhpria_notifications_v63', JSON.stringify(notificationsData));
+            updateNotificationBadge();
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            const loginError = document.getElementById('loginError');
+
+            if (userAccounts[username] && userAccounts[username].password === password) {
+                currentActiveUser = { 
+                    username: username, 
+                    name: userAccounts[username].name, 
+                    subCity: userAccounts[username].subCity,
+                    role: userAccounts[username].role
+                };
+                sessionStorage.setItem('lhpria_session_user_v43', JSON.stringify(currentActiveUser));
+                loginError.style.display = 'none';
+                document.getElementById('loginForm').reset();
+                checkAuthStatus();
+                updateDashboard();
+            } else {
+                loginError.style.display = 'block';
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('lhpria_session_user_v43');
+            currentActiveUser = null;
+            checkAuthStatus();
+            location.reload();
+        }
+
+        function openChangePasswordModal() {
+            if (!currentActiveUser) return;
+            document.getElementById('changePassUserLabel').innerText = `ተጠቃሚ፦ ${currentActiveUser.name}`;
+            document.getElementById('passChangeError').style.display = 'none';
+            document.getElementById('changePasswordForm').reset();
+            document.getElementById('changePasswordModal').style.display = 'flex';
+        }
+
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').style.display = 'none';
+        }
+
+        function handleChangePassword() {
+            const currentPass = document.getElementById('currentPasswordInput').value.trim();
+            const newPass = document.getElementById('newPasswordInput').value.trim();
+            const confirmPass = document.getElementById('confirmPasswordInput').value.trim();
+            const errorDiv = document.getElementById('passChangeError');
+            const username = currentActiveUser.username;
+
+            if (userAccounts[username].password !== currentPass) {
+                errorDiv.innerText = "የአሁኑ የምስጢር ቁጥር ተሳስቷል!";
+                errorDiv.style.display = 'block';
+                return;
+            }
+            if (newPass !== confirmPass) {
+                errorDiv.innerText = "አዲሱ የምስጢር ቁጥር እና ማረጋገጫው አይመሳሰሉም!";
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            userAccounts[username].password = newPass;
+            localStorage.setItem('lhpria_user_accounts_v43', JSON.stringify(userAccounts));
+            alert("የምስጢር ቁጥርዎ በጥሩ ሁኔታ ተቀይሯል!");
+            closeChangePasswordModal();
+        }
+
+        function handleServiceChange() {
+            const selectVal = document.getElementById('serviceTypeSelect').value;
+            document.getElementById('customServiceGroup').style.display = (selectVal === 'ሌላ') ? 'block' : 'none';
+            document.getElementById('serviceDailyActual').value = '';
+            document.getElementById('serviceAlarmBadge').style.display = 'none';
+            
+            const subCityVal = document.getElementById('subCity').value || (currentActiveUser ? currentActiveUser.subCity : '');
+            const planKey = `${subCityVal}_service_${selectVal}`;
+            if (masterPlans[planKey]) {
+                document.getElementById('serviceOctPlan').value = masterPlans[planKey].oct || 0;
+                document.getElementById('serviceNovPlan').value = masterPlans[planKey].nov || 0;
+                document.getElementById('serviceDecPlan').value = masterPlans[planKey].dec || 0;
+                calcServiceTotalPlan();
+            }
+        }
+
+        function onLandTaskChange() {
+            const taskVal = document.getElementById('landVerificationTask').value;
+            document.getElementById('landDailyActual').value = '';
+            document.getElementById('landAlarmBadge').style.display = 'none';
+
+            const subCityVal = document.getElementById('subCity').value || (currentActiveUser ? currentActiveUser.subCity : '');
+            const planKey = `${subCityVal}_land_${taskVal}`;
+            if (masterPlans[planKey]) {
+                document.getElementById('landOctPlan').value = masterPlans[planKey].oct || 0;
+                document.getElementById('landNovPlan').value = masterPlans[planKey].nov || 0;
+                document.getElementById('landDecPlan').value = masterPlans[planKey].dec || 0;
+                calcLandTotalPlan();
+            }
+        }
+
+        function onDigitalTaskChange() {
+            const taskVal = document.getElementById('digitizationTask').value;
+            document.getElementById('digitalDailyActual').value = '';
+            document.getElementById('digitalAlarmBadge').style.display = 'none';
+
+            const subCityVal = document.getElementById('subCity').value || (currentActiveUser ? currentActiveUser.subCity : '');
+            const planKey = `${subCityVal}_digital_${taskVal}`;
+            if (masterPlans[planKey]) {
+                document.getElementById('digitalOctPlan').value = masterPlans[planKey].oct || 0;
+                document.getElementById('digitalNovPlan').value = masterPlans[planKey].nov || 0;
+                document.getElementById('digitalDecPlan').value = masterPlans[planKey].dec || 0;
+                calcDigitalTotalPlan();
+            }
+        }
+
+        function onElandTaskChange() {
+            const taskVal = document.getElementById('elandSubCategory').value;
+            document.getElementById('elandDailyActual').value = '';
+            document.getElementById('elandAlarmBadge').style.display = 'none';
+
+            const subCityVal = document.getElementById('subCity').value || (currentActiveUser ? currentActiveUser.subCity : '');
+            const planKey = `${subCityVal}_eland_${taskVal}`;
+            if (masterPlans[planKey]) {
+                document.getElementById('elandOctPlan').value = masterPlans[planKey].oct || 0;
+                document.getElementById('elandNovPlan').value = masterPlans[planKey].nov || 0;
+                document.getElementById('elandDecPlan').value = masterPlans[planKey].dec || 0;
+                calcElandTotalPlan();
+            }
+        }
+
+        function onCrprsTaskChange() {
+            const taskVal = document.getElementById('crprsTaskSelect').value;
+            document.getElementById('crprsDailyActual').value = '';
+            document.getElementById('crprsAlarmBadge').style.display = 'none';
+
+            const subCityVal = document.getElementById('subCity').value || (currentActiveUser ? currentActiveUser.subCity : '');
+            const planKey = `${subCityVal}_crprs_${taskVal}`;
+            if (masterPlans[planKey]) {
+                document.getElementById('crprsOctPlan').value = masterPlans[planKey].oct || 0;
+                document.getElementById('crprsNovPlan').value = masterPlans[planKey].nov || 0;
+                document.getElementById('crprsDecPlan').value = masterPlans[planKey].dec || 0;
+                calcCrprsTotalPlan();
+            }
+        }
+
+        function checkThresholdAlerts(type) {
+            const planVal = parseFloat(document.getElementById(`${type}90DaysPlan`).value) || 100;
+            const actVal = parseFloat(document.getElementById(`${type}DailyActual`).value) || 0;
+            const badge = document.getElementById(`${type}AlarmBadge`);
+            
+            if (actVal > 0 && (actVal / planVal) < 0.5) {
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function saveSectionData(sectionName) {
+            const subCityVal = document.getElementById('subCity').value;
+            if (!subCityVal) {
+                alert("እባክዎ መጀመሪያ ክፍለ ከተማ ይምረጡ!");
+                return;
+            }
+
+            if (sectionName === 'land') {
+                const task = document.getElementById('landVerificationTask').value;
+                if (!task) { alert("እባክዎ የይዞታ ማረጋገጥ ተግባር ይምረጡ"); return; }
+                const oct = parseFloat(document.getElementById('landOctPlan').value) || 0;
+                const nov = parseFloat(document.getElementById('landNovPlan').value) || 0;
+                const dec = parseFloat(document.getElementById('landDecPlan').value) || 0;
+                masterPlans[`${subCityVal}_land_${task}`] = {oct, nov, dec};
+                alert("የይዞታ ማረጋገጥ እቅድ/መረጃ ተቀምጧል!");
+            } else if (sectionName === 'service') {
+                let serv = document.getElementById('serviceTypeSelect').value;
+                if (!serv) { alert("እባክዎ አገልግሎት ይምረጡ"); return; }
+                if (serv === 'ሌላ') serv = document.getElementById('customService').value;
+                const oct = parseFloat(document.getElementById('serviceOctPlan').value) || 0;
+                const nov = parseFloat(document.getElementById('serviceNovPlan').value) || 0;
+                const dec = parseFloat(document.getElementById('serviceDecPlan').value) || 0;
+                masterPlans[`${subCityVal}_service_${serv}`] = {oct, nov, dec};
+                alert("የአገልግሎት ስራ እቅድ/መረጃ ተቀምጧል!");
+            } else if (sectionName === 'digital') {
+                const task = document.getElementById('digitizationTask').value;
+                if (!task) { alert("እባክዎ የዲጂታላይዜሽን ስራ ይምረጡ"); return; }
+                const oct = parseFloat(document.getElementById('digitalOctPlan').value) || 0;
+                const nov = parseFloat(document.getElementById('digitalNovPlan').value) || 0;
+                const dec = parseFloat(document.getElementById('digitalDecPlan').value) || 0;
+                masterPlans[`${subCityVal}_digital_${task}`] = {oct, nov, dec};
+                alert("የዲጂታላይዜሽን ስራ እቅድ/መረጃ ተቀምጧል!");
+            } else if (sectionName === 'eland') {
+                const task = document.getElementById('elandSubCategory').value;
+                if (!task) { alert("እባክዎ የኢላንድ ዝርዝር ይምረጡ"); return; }
+                const oct = parseFloat(document.getElementById('elandOctPlan').value) || 0;
+                const nov = parseFloat(document.getElementById('elandNovPlan').value) || 0;
+                const dec = parseFloat(document.getElementById('elandDecPlan').value) || 0;
+                masterPlans[`${subCityVal}_eland_${task}`] = {oct, nov, dec};
+                alert("የኢላንድ ስራ እቅድ/መረጃ ተቀምጧል!");
+            } else if (sectionName === 'crprs') {
+                const task = document.getElementById('crprsTaskSelect').value;
+                if (!task) { alert("እባክዎ የ CRPRS አገልግሎት ይምረጡ"); return; }
+                const oct = parseFloat(document.getElementById('crprsOctPlan').value) || 0;
+                const nov = parseFloat(document.getElementById('crprsNovPlan').value) || 0;
+                const dec = parseFloat(document.getElementById('crprsDecPlan').value) || 0;
+                masterPlans[`${subCityVal}_crprs_${task}`] = {oct, nov, dec};
+                alert("የ CRPRS ስራ እቅድ/መረጃ ተቀምጧል!");
+            } else if (sectionName === 'revenue') {
+                const cat = document.getElementById('revenueCategory').value;
+                if (!cat) { alert("እባክዎ የገቢ ምድብ ይምረጡ"); return; }
+                const oct = parseFloat(document.getElementById('revenueOctPlan').value) || 0;
+                const nov = parseFloat(document.getElementById('revenueNovPlan').value) || 0;
+                const dec = parseFloat(document.getElementById('revenueDecPlan').value) || 0;
+                masterPlans[`${subCityVal}_revenue_${cat}`] = {oct, nov, dec};
+                alert("የገቢ እቅድ/መረጃ ተቀምጧል!");
+            }
+
+            localStorage.setItem('lhpria_master_plans_v63', JSON.stringify(masterPlans));
+            validateFormCompleteness();
+        }
+
+        function toggleCustomDateInput() {
+            const val = document.getElementById('timeFilter').value;
+            document.getElementById('customDateContainer').style.display = (val === 'custom') ? 'grid' : 'none';
+            updateDashboard();
+        }
+
+        function editReport(id) {
+            const report = reportData.find(r => r.id == id);
+            if (!report) return;
+
+            document.getElementById('editReportId').value = report.id;
+            document.getElementById('reportDate').value = report.date;
+            document.getElementById('subCity').value = report.subCity;
+            
+            document.getElementById('landVerificationTask').value = report.landTask !== '-' ? report.landTask : '';
+            document.getElementById('landOctPlan').value = report.landOct || 0;
+            document.getElementById('landNovPlan').value = report.landNov || 0;
+            document.getElementById('landDecPlan').value = report.landDec || 0;
+            calcLandTotalPlan();
+            document.getElementById('landDailyActual').value = report.landVerificationCount || '';
+
+            document.getElementById('serviceTypeSelect').value = report.serviceType !== '-' ? report.serviceType : '';
+            document.getElementById('serviceOctPlan').value = report.serviceOct || 0;
+            document.getElementById('serviceNovPlan').value = report.serviceNov || 0;
+            document.getElementById('serviceDecPlan').value = report.serviceDec || 0;
+            calcServiceTotalPlan();
+            document.getElementById('serviceDailyActual').value = report.customerCount || '';
+
+            document.getElementById('digitizationTask').value = report.digitalTask !== '-' ? report.digitalTask : '';
+            document.getElementById('digitalOctPlan').value = report.digitalOct || 0;
+            document.getElementById('digitalNovPlan').value = report.digitalNov || 0;
+            document.getElementById('digitalDecPlan').value = report.digitalDec || 0;
+            calcDigitalTotalPlan();
+            document.getElementById('digitalDailyActual').value = report.digitizationCount || '';
+
+            document.getElementById('elandSubCategory').value = report.elandVal !== '-' ? report.elandVal : '';
+            document.getElementById('elandOctPlan').value = report.elandOct || 0;
+            document.getElementById('elandNovPlan').value = report.elandNov || 0;
+            document.getElementById('elandDecPlan').value = report.elandDec || 0;
+            calcElandTotalPlan();
+            document.getElementById('elandDailyActual').value = report.elandCount || '';
+
+            document.getElementById('crprsTaskSelect').value = report.crprsVal !== '-' ? report.crprsVal : '';
+            document.getElementById('crprsOctPlan').value = report.crprsOct || 0;
+            document.getElementById('crprsNovPlan').value = report.crprsNov || 0;
+            document.getElementById('crprsDecPlan').value = report.crprsDec || 0;
+            calcCrprsTotalPlan();
+            document.getElementById('crprsDailyActual').value = report.crprsCount || '';
+
+            document.getElementById('revenueCategory').value = report.revCat !== '-' ? report.revCat : '';
+            document.getElementById('revenueOctPlan').value = report.revOct || 0;
+            document.getElementById('revenueNovPlan').value = report.revNov || 0;
+            document.getElementById('revenueDecPlan').value = report.revDec || 0;
+            calcRevTotalPlan();
+            document.getElementById('revenueDailyActual').value = report.dailyRevenue || '';
+
+            document.getElementById('keyTasks').value = report.keyTasks;
+            document.getElementById('challenges').value = report.challenges;
+
+            document.getElementById('submitBtn').innerText = 'ሪፖርት አስተካክሎ አስቀምጥ';
+            document.getElementById('cancelEditBtn').style.display = 'block';
+            validateFormCompleteness();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            document.getElementById('reportForm').reset();
+            document.getElementById('editReportId').value = '';
+            document.getElementById('reportDate').valueAsDate = new Date();
+            document.getElementById('submitBtn').innerText = 'ሪፖርት ለቅ/ጽ/ቤት ኃላፊ ላክ';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            if (currentActiveUser && currentActiveUser.role === 'preparer') {
+                document.getElementById('subCity').value = currentActiveUser.subCity;
+                document.getElementById('preparerName').value = currentActiveUser.name;
+            }
+            validateFormCompleteness();
+        }
+
+        function saveReport() {
+            const editId = document.getElementById('editReportId').value;
+            const subCityVal = document.getElementById('subCity').value;
+            const serviceSelect = document.getElementById('serviceTypeSelect').value;
+            let finalService = serviceSelect;
+
+            if (serviceSelect === 'ሌላ') {
+                finalService = document.getElementById('customService').value;
+            }
+
+            const landTask = document.getElementById('landVerificationTask').value || '-';
+            const digitalTask = document.getElementById('digitizationTask').value || '-';
+            const elandSub = document.getElementById('elandSubCategory').value || '-';
+            const crprsSub = document.getElementById('crprsTaskSelect').value || '-';
+            const revCat = document.getElementById('revenueCategory').value || '-';
+
+            const landActual = parseFloat(document.getElementById('landDailyActual').value) || 0;
+            const serviceActual = parseFloat(document.getElementById('serviceDailyActual').value) || 0;
+            const digitalActual = parseFloat(document.getElementById('digitalDailyActual').value) || 0;
+            const elandActual = parseFloat(document.getElementById('elandDailyActual').value) || 0;
+            const crprsActual = parseFloat(document.getElementById('crprsDailyActual').value) || 0;
+            const revenueActual = parseFloat(document.getElementById('revenueDailyActual').value) || 0;
+
+            const landOct = parseFloat(document.getElementById('landOctPlan').value) || 0;
+            const landNov = parseFloat(document.getElementById('landNovPlan').value) || 0;
+            const landDec = parseFloat(document.getElementById('landDecPlan').value) || 0;
+            const land90Plan = landOct + landNov + landDec || 100;
+
+            const serviceOct = parseFloat(document.getElementById('serviceOctPlan').value) || 0;
+            const serviceNov = parseFloat(document.getElementById('serviceNovPlan').value) || 0;
+            const serviceDec = parseFloat(document.getElementById('serviceDecPlan').value) || 0;
+            const service90Plan = serviceOct + serviceNov + serviceDec || 100;
+
+            const digitalOct = parseFloat(document.getElementById('digitalOctPlan').value) || 0;
+            const digitalNov = parseFloat(document.getElementById('digitalNovPlan').value) || 0;
+            const digitalDec = parseFloat(document.getElementById('digitalDecPlan').value) || 0;
+            const digital90Plan = digitalOct + digitalNov + digitalDec || 100;
+
+            const elandOct = parseFloat(document.getElementById('elandOctPlan').value) || 0;
+            const elandNov = parseFloat(document.getElementById('elandNovPlan').value) || 0;
+            const elandDec = parseFloat(document.getElementById('elandDecPlan').value) || 0;
+            const eland90Plan = elandOct + elandNov + elandDec || 100;
+
+            const crprsOct = parseFloat(document.getElementById('crprsOctPlan').value) || 0;
+            const crprsNov = parseFloat(document.getElementById('crprsNovPlan').value) || 0;
+            const crprsDec = parseFloat(document.getElementById('crprsDecPlan').value) || 0;
+            const crprs90Plan = crprsOct + crprsNov + crprsDec || 100;
+
+            const revOct = parseFloat(document.getElementById('revenueOctPlan').value) || 0;
+            const revNov = parseFloat(document.getElementById('revenueNovPlan').value) || 0;
+            const revDec = parseFloat(document.getElementById('revenueDecPlan').value) || 0;
+            const revenue90Plan = revOct + revNov + revDec || 1000;
+
+            const representativeActual = Math.max(landActual, serviceActual, digitalActual, elandActual, crprsActual);
+            const representativePlan = Math.max(land90Plan, service90Plan, digital90Plan, eland90Plan, crprs90Plan, 1);
+
+            const preparerNameVal = currentActiveUser ? currentActiveUser.name : 'ባለሙያ';
+
+            if (editId) {
+                const report = reportData.find(r => r.id == editId);
+                if (report) {
+                    report.preparerName = preparerNameVal;
+                    report.date = document.getElementById('reportDate').value;
+                    report.subCity = subCityVal;
+                    report.serviceType = finalService;
+                    report.landTask = landTask;
+                    report.digitalTask = digitalTask;
+                    report.elandVal = elandSub;
+                    report.crprsVal = crprsSub;
+                    report.revCat = revCat;
+                    report.dailyPlan = representativePlan;
+                    report.customerCount = serviceActual;
+                    report.dailyRevenue = revenueActual;
+                    report.landVerificationCount = landActual;
+                    report.digitizationCount = digitalActual;
+                    report.elandCount = elandActual;
+                    report.crprsCount = crprsActual;
+
+                    report.landOct = landOct; report.landNov = landNov; report.landDec = landDec; report.landPlan = land90Plan;
+                    report.serviceOct = serviceOct; report.serviceNov = serviceNov; report.serviceDec = serviceDec; report.servicePlan = service90Plan;
+                    report.digitalOct = digitalOct; report.digitalNov = digitalNov; report.digitalDec = digitalDec; report.digitalPlan = digital90Plan;
+                    report.elandOct = elandOct; report.elandNov = elandNov; report.elandDec = elandDec; report.elandPlan = eland90Plan;
+                    report.crprsOct = crprsOct; report.crprsNov = crprsNov; report.crprsDec = crprsDec; report.crprsPlan = crprs90Plan;
+                    report.revOct = revOct; report.revNov = revNov; report.revDec = revDec; report.revenuePlan = revenue90Plan;
+
+                    report.keyTasks = document.getElementById('keyTasks').value;
+                    report.challenges = document.getElementById('challenges').value;
+                    report.status = 'Pending';
+                }
+                alert('ሪፖርቱ ተሻሽሎ ለቅ/ጽ/ቤት ኃላፊ ዳግም ተልኳል!');
+                cancelEdit();
+            } else {
+                const newReport = {
+                    id: Date.now(),
+                    preparerName: preparerNameVal,
+                    subCity: subCityVal,
+                    date: document.getElementById('reportDate').value,
+                    serviceType: finalService,
+                    landTask: landTask,
+                    digitalTask: digitalTask,
+                    elandVal: elandSub,
+                    crprsVal: crprsSub,
+                    revCat: revCat,
+                    dailyPlan: representativePlan,
+                    customerCount: serviceActual,
+                    dailyRevenue: revenueActual,
+                    landVerificationCount: landActual,
+                    digitizationCount: digitalActual,
+                    elandCount: elandActual,
+                    crprsCount: crprsActual,
+
+                    landOct: landOct, landNov: landNov, landDec: landDec, landPlan: land90Plan,
+                    serviceOct: serviceOct, serviceNov: serviceNov, serviceDec: serviceDec, servicePlan: service90Plan,
+                    digitalOct: digitalOct, digitalNov: digitalNov, digitalDec: digitalDec, digitalPlan: digital90Plan,
+                    elandOct: elandOct, elandNov: elandNov, elandDec: elandDec, elandPlan: eland90Plan,
+                    crprsOct: crprsOct, crprsNov: crprsNov, crprsDec: crprsDec, crprsPlan: crprs90Plan,
+                    revOct: revOct, revNov: revNov, revDec: revDec, revenuePlan: revenue90Plan,
+
+                    keyTasks: document.getElementById('keyTasks').value,
+                    challenges: document.getElementById('challenges').value,
+                    status: 'Pending',
+                    hqFeedback: '',
+                    hqDirectorRemark: ''
+                };
+                reportData.push(newReport);
+                alert('ሪፖርቱ ለቅ/ጽ/ቤት ኃላፊ ተልኳል!');
+                document.getElementById('reportForm').reset();
+                document.getElementById('reportDate').valueAsDate = new Date();
+                document.getElementById('preparerName').value = preparerNameVal;
+            }
+
+            localStorage.setItem('lhpria_reports_v63', JSON.stringify(reportData));
+            if (currentActiveUser && currentActiveUser.role === 'preparer') {
+                document.getElementById('subCity').value = currentActiveUser.subCity;
+            }
+            validateFormCompleteness();
+            updateDashboard();
+        }
+
+        function saveHqRemark(reportId) {
+            const remarkInput = document.getElementById(`hq_remark_${reportId}`);
+            if (!remarkInput) return;
+            const remarkText = remarkInput.value.trim();
+
+            const report = reportData.find(r => r.id == reportId);
+            if (report) {
+                report.hqDirectorRemark = remarkText;
+                localStorage.setItem('lhpria_reports_v63', JSON.stringify(reportData));
+                alert("የማዕከል ዳይሬክተር አስተያየት/ምላሽ ለቅርንጫፍ ኃላፊ ተልኳል!");
+                updateDashboard();
+            }
+        }
+
+        function preparerEditReportByHead(id) {
+            editReport(id);
+            document.getElementById('formCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderApprovals() {
+            const tbody = document.getElementById('approvalTableBody');
+            tbody.innerHTML = '';
+            if (!currentActiveUser || currentActiveUser.role !== 'approver') return;
+
+            const subCityItems = reportData.filter(r => r.subCity === currentActiveUser.subCity);
+
+            if (subCityItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:#718096;">ምንም የተላከ ሪፖርት የለም</td></tr>';
+                return;
+            }
+
+            subCityItems.slice().reverse().forEach(item => {
+                const tr = document.createElement('tr');
+                let actionCell = '';
+
+                if (item.status === 'Pending') {
+                    actionCell = `
+                        <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                            <button onclick="approveReport(${item.id})" style="background:#2f855a; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.75rem;">አጽድቅ</button>
+                            <button onclick="rejectReport(${item.id})" style="background:#e53e3e; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.75rem;">ውድቅ አድርግ</button>
+                        </div>
+                    `;
+                } else if (item.status === 'Approved') {
+                    actionCell = `<b style="color:#2f855a; font-size:0.8rem;">ጸድቋል (ወደ ማዕከል ተልኳል)</b>`;
+                }
+
+                let hqRemarkDisplay = item.hqDirectorRemark ? `<b style="color:#2b6cb0;">${item.hqDirectorRemark}</b>` : `<span style="color:#a0aec0;">ምንም ማዕከል አስተያየት የለም</span>`;
+
+                tr.innerHTML = `
+                    <td><b>${item.date}</b><br><small>${item.preparerName}</small></td>
+                    <td>${item.landTask || '-'}<br><small>አፈ/እቅድ፦ ${item.landVerificationCount || 0}/${item.landPlan || 0}</small></td>
+                    <td>${item.serviceType || '-'}<br><small>አፈ/እቅድ፦ ${item.customerCount || 0}/${item.servicePlan || 0}</small></td>
+                    <td>${item.digitalTask || '-'}<br><small>አፈ/እቅድ፦ ${item.digitizationCount || 0}/${item.digitalPlan || 0}</small></td>
+                    <td>${item.elandVal || '-'}<br><small>አፈ/እቅድ፦ ${item.elandCount || 0}/${item.elandPlan || 0}</small></td>
+                    <td>${item.crprsVal || '-'}<br><small>አፈ/እቅድ፦ ${item.crprsCount || 0}/${item.crprsPlan || 0}</small></td>
+                    <td><b>${(item.dailyRevenue || 0).toLocaleString()} ብር</b></td>
+                    <td>${item.keyTasks || '-'}</td>
+                    <td>${item.challenges || '-'}</td>
+                    <td>${hqRemarkDisplay}</td>
+                    <td>${actionCell}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function approveReport(id) {
+            const report = reportData.find(r => r.id == id);
+            if (report) {
+                report.status = 'Approved';
+                localStorage.setItem('lhpria_reports_v63', JSON.stringify(reportData));
+                renderApprovals();
+                updateDashboard();
+                alert('ሪፖርቱ ጸድቆ ወደ ማዕከል ተልኳል!');
+            }
+        }
+
+        function rejectReport(id) {
+            const report = reportData.find(r => r.id == id);
+            if (report) {
+                const sc = report.subCity;
+                if (!notificationsData[sc]) notificationsData[sc] = [];
+                notificationsData[sc].push({
+                    date: report.date,
+                    service: report.serviceType,
+                    reason: report.challenges || 'የተሟላ መረጃ ባለመሆኑ ውድቅ ተደርጓል።'
+                });
+                localStorage.setItem('lhpria_notifications_v63', JSON.stringify(notificationsData));
+
+                // Completely remove rejected report from history/array
+                reportData = reportData.filter(r => r.id != id);
+                localStorage.setItem('lhpria_reports_v63', JSON.stringify(reportData));
+
+                renderApprovals();
+                updateDashboard();
+                alert('ሪፖርቱ ውድቅ ተደርጎ ከታሪክ ተሰርዟል፤ ለክፍለ ከተማው አዘጋጅ ማሳሰቢያ ተልኳል!');
+            }
+        }
+
+        function getFilteredData() {
+            const filterVal = document.getElementById('timeFilter').value;
+            const now = new Date();
+
+            return reportData.filter(item => {
+                if (currentActiveUser && (currentActiveUser.role === 'preparer' || currentActiveUser.role === 'approver')) {
+                    if (item.subCity !== currentActiveUser.subCity) return false;
+                }
+                if (item.status !== 'Approved') return false;
+
+                const itemDate = new Date(item.date);
+
+                if (filterVal === 'today') {
+                    return itemDate.toDateString() === now.toDateString();
+                } else if (filterVal === 'week') {
+                    const diffTime = Math.abs(now - itemDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    return diffDays <= 7;
+                } else if (filterVal === '15days') {
+                    const diffTime = Math.abs(now - itemDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    return diffDays <= 15;
+                } else if (filterVal === 'month') {
+                    return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
+                } else if (filterVal === 'custom') {
+                    const startStr = document.getElementById('startDateFilter').value;
+                    const endStr = document.getElementById('endDateFilter').value;
+                    if (!startStr || !endStr) return true;
+                    return itemDate >= new Date(startStr) && itemDate <= new Date(endStr);
+                }
+                return true;
+            });
+        }
+
+        function updateCountdown() {
+            const banner = document.getElementById('countdownBanner');
+            if (currentBannerState === 'ALERT_TEXT') {
+                banner.classList.remove('animating');
+                banner.classList.add('alert-state');
+                banner.innerHTML = `🏃🔥 <b>ከእርምጃ ወደ ሩጫ!</b> (የ90 ቀናት እቅዳችንን በውጤታማነት እናጠናቅቃለን!)`;
+                return;
+            }
+
+            banner.classList.remove('alert-state');
+            if (currentBannerState === 'COUNTDOWN_ANIMATING') {
+                banner.classList.add('animating');
+            } else {
+                banner.classList.remove('animating');
+            }
+
+            const now = new Date();
+            let targetDate = new Date(now.getFullYear(), 11, 30, 23, 59, 59);
+            const diff = targetDate - now;
+
+            if (diff > 0) {
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((diff / (1000 * 60)) % 60);
+                banner.innerHTML = `⌛ የ90 ቀናት እቅድ ሪፖርት ማጠናቀቂያ (ታህሳስ 30) - ቀሪ ጊዜ፦ <b>${days} ቀን፣ ${hours} ሰዓት ከ ${minutes} ደቂቃ</b>`;
+            } else {
+                banner.innerHTML = `⏳ የ90 ቀናት እቅድ የሪፖርት ጊዜው አልቋል።`;
+            }
+        }
+        setInterval(updateCountdown, 10000);
+
+        function updateDashboard() {
+            renderTable();
+            renderMetrics();
+            renderHQSubCitySummary();
+            renderCharts();
+        }
+
+        function renderHQSubCitySummary() {
+            const theadTr = document.getElementById('hqSummaryTableHead');
+            const tbody = document.getElementById('hqSubCitySummaryBody');
+            tbody.innerHTML = '';
+
+            if (!currentActiveUser || (currentActiveUser.role === 'preparer' || currentActiveUser.role === 'approver')) {
+                return;
+            }
+
+            const allSubCities = [
+                "አራዳ", "ቂርቆስ", "ልደታ", "አዲስ ከተማ", "ቦሌ", 
+                "አቃቂ ቃሊቲ", "የካ", "ኮልፌ ቀራኒዮ", "ንፋስ ስልክ ላፍቶ", "ጉለሌ", "ለሚ ኩራ"
+            ];
+
+            const approvedReports = reportData.filter(r => r.status === 'Approved');
+
+            if (currentActiveUser.role === 'hq' || currentActiveUser.role === 'hq_director') {
+                theadTr.innerHTML = `
+                    <th>ክፍለ ከተማ</th>
+                    <th>1. ይዞታ ማረጋገጥ</th>
+                    <th>2. አገልግሎት</th>
+                    <th>3. ዲጂታላይዜሽን</th>
+                    <th>4. ኢላንድ</th>
+                    <th>5. CRPRS</th>
+                    <th>6. ገቢ (ብር)</th>
+                    <th>ዋና ዋና ተግባራት</th>
+                    <th>ያጋጠሙ ችግሮች</th>
+                    <th>ማዕከል አስተያየት</th>
+                    <th>ሁኔታ</th>
+                `;
+            } else if (currentActiveUser.role === 'land_director') {
+                theadTr.innerHTML = `
+                    <th>ክፍለ ከተማ</th>
+                    <th>የይዞታ ማረጋገጥ ዝርዝር</th>
+                    <th>ጥቅ / ህዳ / ታህ (እቅድ)</th>
+                    <th>አፈፃፀም</th>
+                    <th>ዋና ዋና ተግባራት</th>
+                    <th>ያጋጠሙ ችግሮች</th>
+                    <th>ማዕከል አስተያየት</th>
+                    <th>ሁኔታ</th>
+                `;
+            } else if (currentActiveUser.role === 'service_director') {
+                theadTr.innerHTML = `
+                    <th>ክፍለ ከተማ</th>
+                    <th>አገልግሎት ዓይነት</th>
+                    <th>ዲጂታላይዜሽን</th>
+                    <th>ገቢ (ጥቅ/ህዳ/ታህ እቅድ vs አፈ)</th>
+                    <th>ዋና ዋና ተግባራት</th>
+                    <th>ችግሮች</th>
+                    <th>ማዕከል አስተያየት</th>
+                    <th>ሁኔታ</th>
+                `;
+            } else if (currentActiveUser.role === 'it_director') {
+                theadTr.innerHTML = `
+                    <th>ክፍለ ከተማ</th>
+                    <th>ኢላንድ ዝርዝር</th>
+                    <th>CRPRS ሪፖርት</th>
+                    <th>ዲጂታላይዜሽን</th>
+                    <th>ዋና ዋና ተግባራት</th>
+                    <th>ችግሮች</th>
+                    <th>ማዕከል አስተያየት</th>
+                    <th>ሁኔታ</th>
+                `;
+            }
+
+            allSubCities.forEach(sc => {
+                const scReports = approvedReports.filter(r => r.subCity === sc);
+                const latestApprovedItem = scReports.length > 0 ? scReports[scReports.length - 1] : null;
+
+                const landAct = scReports.reduce((acc, cur) => acc + (cur.landVerificationCount || 0), 0);
+                const landPlan = scReports.reduce((acc, cur) => acc + (cur.landPlan || 100), 0) || 100;
+                const landOct = scReports.reduce((acc, cur) => acc + (cur.landOct || 0), 0);
+                const landNov = scReports.reduce((acc, cur) => acc + (cur.landNov || 0), 0);
+                const landDec = scReports.reduce((acc, cur) => acc + (cur.landDec || 0), 0);
+
+                const servAct = scReports.reduce((acc, cur) => acc + (cur.customerCount || 0), 0);
+                const servPlan = scReports.reduce((acc, cur) => acc + (cur.servicePlan || 100), 0) || 100;
+
+                const digAct = scReports.reduce((acc, cur) => acc + (cur.digitizationCount || 0), 0);
+                const digPlan = scReports.reduce((acc, cur) => acc + (cur.digitalPlan || 100), 0) || 100;
+
+                const elandAct = scReports.reduce((acc, cur) => acc + (cur.elandCount || 0), 0);
+                const elandPlan = scReports.reduce((acc, cur) => acc + (cur.elandPlan || 100), 0) || 100;
+
+                const crprsAct = scReports.reduce((acc, cur) => acc + (cur.crprsCount || 0), 0);
+                const crprsPlan = scReports.reduce((acc, cur) => acc + (cur.crprsPlan || 100), 0) || 100;
+
+                const revAct = scReports.reduce((acc, cur) => acc + (cur.dailyRevenue || 0), 0);
+                const revPlan = scReports.reduce((acc, cur) => acc + (cur.revenuePlan || 1000), 0) || 1000;
+
+                const latestTask = latestApprovedItem ? latestApprovedItem.landTask : '-';
+                const latestService = latestApprovedItem ? latestApprovedItem.serviceType : '-';
+                const latestDigital = latestApprovedItem ? latestApprovedItem.digitalTask : '-';
+                const latestEland = latestApprovedItem ? latestApprovedItem.elandVal : '-';
+                const latestCrprs = latestApprovedItem ? latestApprovedItem.crprsVal : '-';
+                const latestKeyTasks = latestApprovedItem ? latestApprovedItem.keyTasks : '-';
+                const latestChallenges = latestApprovedItem ? latestApprovedItem.challenges : '-';
+
+                let feedbackCell = '<span style="color:#a0aec0; font-size:0.75rem;">ሪፖርት የለም</span>';
+                if (latestApprovedItem) {
+                    feedbackCell = `
+                        <input type="text" id="hq_remark_${latestApprovedItem.id}" value="${latestApprovedItem.hqDirectorRemark || ''}" placeholder="አስተያየት..." style="width: 120px; padding: 4px; font-size: 0.75rem; margin-bottom: 4px;"><br>
+                        <button onclick="saveHqRemark(${latestApprovedItem.id})" style="background:var(--secondary-color); color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.7rem;">ላክ</button>
+                    `;
+                }
+
+                let totalActual = landAct + servAct + digAct + elandAct + crprsAct;
+                let totalPlan = landPlan + servPlan + digPlan + elandPlan + crprsPlan;
+
+                let badge = `<span class="badge-green">🟩 አረንጓዴ</span>`;
+                const ratio = totalActual / (totalPlan || 1);
+                if (ratio < 0.5) {
+                    badge = `<span class="badge-red">🟥 ቀይ</span>`;
+                } else if (ratio < 1.0) {
+                    badge = `<span class="badge-yellow">🟨 ቢጫ</span>`;
+                }
+
+                const tr = document.createElement('tr');
+
+                if (currentActiveUser.role === 'hq' || currentActiveUser.role === 'hq_director') {
+                    tr.innerHTML = `
+                        <td><b>${sc}</b></td>
+                        <td><b>${latestTask}</b><br><small>አፈ/እቅድ፦ ${landAct}/${landPlan}</small></td>
+                        <td><b>${latestService}</b><br><small>አፈ/እቅድ፦ ${servAct}/${servPlan}</small></td>
+                        <td><b>${latestDigital}</b><br><small>አፈ/እቅድ፦ ${digAct}/${digPlan}</small></td>
+                        <td><b>${latestEland}</b><br><small>አፈ/እቅድ፦ ${elandAct}/${elandPlan}</small></td>
+                        <td><b>${latestCrprs}</b><br><small>አፈ/እቅድ፦ ${crprsAct}/${crprsPlan}</small></td>
+                        <td><b>${revAct.toLocaleString()} ብር</b><br><small>እቅድ፦ ${revPlan.toLocaleString()}</small></td>
+                        <td style="font-size:0.78rem;">${latestKeyTasks || '-'}</td>
+                        <td style="font-size:0.78rem; color:#c53030;">${latestChallenges || '-'}</td>
+                        <td>${feedbackCell}</td>
+                        <td>${badge}</td>
+                    `;
+                } else if (currentActiveUser.role === 'land_director') {
+                    tr.innerHTML = `
+                        <td><b>${sc}</b></td>
+                        <td>${latestTask}</td>
+                        <td>ጥቅ:${landOct} | ህዳ:${landNov} | ታህ:${landDec}</td>
+                        <td><b>${landAct}</b> / ${landPlan}</td>
+                        <td style="font-size:0.78rem;">${latestKeyTasks || '-'}</td>
+                        <td style="font-size:0.78rem; color:#c53030;">${latestChallenges || '-'}</td>
+                        <td>${feedbackCell}</td>
+                        <td>${badge}</td>
+                    `;
+                } else if (currentActiveUser.role === 'service_director') {
+                    tr.innerHTML = `
+                        <td><b>${sc}</b></td>
+                        <td>${latestService} (አፈ/እቅድ፦ ${servAct}/${servPlan})</td>
+                        <td>${latestDigital} (አፈ/እቅድ፦ ${digAct}/${digPlan})</td>
+                        <td>ገቢ፦ ${revAct.toLocaleString()} / እቅድ፦ ${revPlan.toLocaleString()}</td>
+                        <td style="font-size:0.78rem;">${latestKeyTasks || '-'}</td>
+                        <td style="font-size:0.78rem; color:#c53030;">${latestChallenges || '-'}</td>
+                        <td>${feedbackCell}</td>
+                        <td>${badge}</td>
+                    `;
+                } else if (currentActiveUser.role === 'it_director') {
+                    tr.innerHTML = `
+                        <td><b>${sc}</b></td>
+                        <td>${latestEland} (አፈ/እቅድ፦ ${elandAct}/${elandPlan})</td>
+                        <td>${latestCrprs} (አፈ/እቅድ፦ ${crprsAct}/${crprsPlan})</td>
+                        <td>${latestDigital} (አፈ/እቅድ፦ ${digAct}/${digPlan})</td>
+                        <td style="font-size:0.78rem;">${latestKeyTasks || '-'}</td>
+                        <td style="font-size:0.78rem; color:#c53030;">${latestChallenges || '-'}</td>
+                        <td>${feedbackCell}</td>
+                        <td>${badge}</td>
+                    `;
+                }
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            let displayedReports = getFilteredData();
+
+            if (displayedReports.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;">ምንም የተመዘገበ ሪፖርት የለም</td></tr>`;
+                return;
+            }
+
+            displayedReports.slice().reverse().forEach(item => {
+                const tr = document.createElement('tr');
+                
+                let badgeHtml = `<span class="badge-green">🟩 አረንጓዴ</span>`;
+                const ratio = item.customerCount / (item.dailyPlan || 1);
+                if (ratio < 0.5) {
+                    badgeHtml = `<span class="badge-red">🟥 ቀይ</span>`;
+                } else if (ratio < 1.0) {
+                    badgeHtml = `<span class="badge-yellow">🟨 ቢጫ</span>`;
+                }
+
+                let statusHtml = item.status === 'Approved' ? `<b style="color:#2f855a;">ጸድቋል</b>` : `<b style="color:#d69e2e;">በመጠባበቅ ላይ</b>`;
+                if (item.hqFeedback) {
+                    statusHtml += `<br><span style="font-size:0.75rem; color:#2b6cb0;">አስተያየት፦ ${item.hqFeedback}</span>`;
+                }
+
+                let gapAnalysis = 'ዕቅዱ ሙሉ በሙሉ ተሳክቷል፤ አሰራሩ ተጠናክሮ ይቀጥል።';
+                if (ratio < 0.5) {
+                    gapAnalysis = 'አፈፃፀሙ ከዕቅድ በታች በመሆኑ የስራ ፍሰቱን ማጠናከር ይጠይቃል፤ ' + (item.challenges ? 'ችግር፦ ' + item.challenges : '');
+                }
+
+                tr.innerHTML = `
+                    <td>${item.date}</td>
+                    <td><b>${item.subCity}</b></td>
+                    <td>${item.preparerName}</td>
+                    <td>${item.serviceType}</td>
+                    <td>${item.landTask || '-'}</td>
+                    <td>${item.digitalTask || '-'}</td>
+                    <td>${item.elandVal || '-'}</td>
+                    <td>${item.crprsVal || '-'}</td>
+                    <td>${(item.dailyRevenue || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                    <td>${statusHtml} <br>${badgeHtml}</td>
+                    <td>${item.customerCount} / ${item.dailyPlan}</td>
+                    <td style="font-size:0.8rem; color:#4a5568;">${gapAnalysis}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderMetrics() {
+            const filtered = getFilteredData();
+            document.getElementById('totalReports').innerText = filtered.length;
+            
+            const totalCustomers = filtered.reduce((acc, cur) => acc + cur.customerCount, 0);
+            document.getElementById('totalCustomers').innerText = totalCustomers.toLocaleString();
+
+            const totalRevenue = filtered.reduce((acc, cur) => acc + cur.dailyRevenue, 0);
+            document.getElementById('totalRevenue').innerText = totalRevenue.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' ብር';
+
+            const totalLand = filtered.reduce((acc, cur) => acc + cur.landVerificationCount, 0);
+            document.getElementById('totalLandVerified').innerText = totalLand.toLocaleString();
+
+            const totalDigital = filtered.reduce((acc, cur) => acc + cur.digitizationCount, 0);
+            document.getElementById('totalDigitalized').innerText = totalDigital.toLocaleString();
+
+            const totalCrprs = filtered.reduce((acc, cur) => acc + (cur.crprsCount || 0), 0);
+            document.getElementById('totalCrprs').innerText = totalCrprs.toLocaleString();
+
+            const totalEland = filtered.reduce((acc, cur) => acc + (cur.elandCount || 0), 0);
+            document.getElementById('totalEland').innerText = totalEland.toLocaleString();
+
+            const comboTotals = {};
+            filtered.forEach(item => {
+                const key = `${item.serviceType} (${item.subCity})`;
+                comboTotals[key] = (comboTotals[key] || 0) + item.customerCount;
+            });
+
+            let topCombo = '-';
+            let maxCount = 0;
+            for (const [combo, count] of Object.entries(comboTotals)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    topCombo = combo;
+                }
+            }
+            document.getElementById('topSubCityAndService').innerText = topCombo;
+        }
+
+        function renderCharts() {
+            const filtered = getFilteredData();
+            const subCityLabels = [];
+            const performanceData = [];
+            const planData = [];
+            const barColors = [];
+            const subCityTraffic = {};
+            const subCityRevenue = {};
+
+            filtered.forEach(item => {
+                subCityTraffic[item.subCity] = (subCityTraffic[item.subCity] || 0) + item.customerCount;
+                subCityRevenue[item.subCity] = (subCityRevenue[item.subCity] || 0) + item.dailyRevenue;
+            });
+
+            filtered.forEach(item => {
+                subCityLabels.push(`${item.subCity} (${item.serviceType})`);
+                performanceData.push(item.customerCount);
+                planData.push(item.dailyPlan || 0);
+
+                const ratio = item.customerCount / (item.dailyPlan || 1);
+                if (ratio >= 1.0) {
+                    barColors.push('#38a169');
+                } else if (ratio >= 0.5) {
+                    barColors.push('#d69e2e');
+                } else {
+                    barColors.push('#feb2b2');
+                }
+            });
+
+            if (planChartInstance) planChartInstance.destroy();
+            if (workflowChartInstance) workflowChartInstance.destroy();
+            if (revenueChartInstance) revenueChartInstance.destroy();
+
+            const ctx1 = document.getElementById('planVsPerformanceChart').getContext('2d');
+            planChartInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: subCityLabels.length ? subCityLabels : ['መረጃ የለም'],
+                    datasets: [
+                        { label: 'አፈፃፀም', data: performanceData.length ? performanceData : [0], backgroundColor: barColors },
+                        { label: '90 ቀናት እቅድ', data: planData.length ? planData : [0], backgroundColor: '#cbd5e0' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+            });
+
+            const workflowLabels = Object.keys(subCityTraffic);
+            const ctx2 = document.getElementById('workflowSummaryChart').getContext('2d');
+            workflowChartInstance = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: workflowLabels.length ? workflowLabels : ['መረጃ የለም'],
+                    datasets: [{
+                        label: 'የተገልጋይ ፍሰት መጠን',
+                        data: workflowLabels.length ? Object.values(subCityTraffic) : [0],
+                        backgroundColor: '#2b6cb0',
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const ctx3 = document.getElementById('revenueChart').getContext('2d');
+            revenueChartInstance = new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: workflowLabels.length ? workflowLabels : ['መረጃ የለም'],
+                    datasets: [{
+                        label: 'ገቢ (ብር)',
+                        data: workflowLabels.length ? Object.values(subCityRevenue) : [0],
+                        borderColor: '#2f855a',
+                        backgroundColor: 'rgba(72, 187, 120, 0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+    </script>
+</body>
+</html>

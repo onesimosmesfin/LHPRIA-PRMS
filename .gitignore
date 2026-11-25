@@ -1,0 +1,5 @@
+# Logs & runtime artifacts
+*.log
+*.tmp
+CURRENT_ONLINE_URL.txt
+.system_generated/
