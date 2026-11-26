@@ -9,7 +9,8 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **System Admin** | `admin` | `admin123` | Headquarter (HQ) | `/land/admin/users.php` |
 | **Planner** | `Abay` | `abay@123` | Akaky Kaliti Subcity | `/land/planner/plans.php` |
-| **Planner 2** | `abrish` | `abrish123` | Akaky Kaliti Subcity | `/land/planner/plans.php` |
-| **Subcity Director** | `geleta` | `geleta123` | Akaky Kaliti Subcity | `/land/director/review_plans.php` |
+| **Planner 2** | `melkamu` | `melkamu123` | Akaky Kaliti Subcity | `/land/planner/plans.php` |
+| **Subcity Director** | `girma` | `girma123` | Akaky Kaliti Subcity | `/land/director/review_plans.php` |
 | **Reporter** | `bersha` | `bersha123` | Akaky Kaliti Subcity | `/land/reporter/create_report.php` |
-| **HQ Director** | `bekele` | `bekele123` | Headquarter (HQ) | `/land/hq/dashboard.php` |
+| **HQ Director** | `tesfaye` | `tesfaye123` | Headquarter (HQ) | `/land/hq/dashboard.php` |
+| **HQ Director** | `kidst` | `kidst123` | Headquarter (HQ) | `/land/hq/dashboard.php` |
