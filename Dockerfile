@@ -17,9 +17,10 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy application files
+# Copy application files to BOTH root (/var/www/html) and subdirectory (/var/www/html/land)
+# This guarantees that URLs resolve properly whether requested at '/' or '/land/'
+COPY land/ /var/www/html/
 COPY land/ /var/www/html/land/
-COPY land/index.php /var/www/html/index.php
 COPY entrypoint.sh /entrypoint.sh
 
 # Convert line endings and ensure execution permission on entrypoint

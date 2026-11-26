@@ -14,7 +14,10 @@ if [ "$TABLES" = "0" ] || [ -z "$TABLES" ]; then
     echo "Importing prms_db.sql..."
     if [ -f /var/www/html/land/prms_db.sql ]; then
         mysql prms_db < /var/www/html/land/prms_db.sql
-        echo "prms_db schema imported successfully."
+        echo "prms_db schema imported from /var/www/html/land/prms_db.sql."
+    elif [ -f /var/www/html/prms_db.sql ]; then
+        mysql prms_db < /var/www/html/prms_db.sql
+        echo "prms_db schema imported from /var/www/html/prms_db.sql."
     fi
 else
     echo "prms_db tables already exist ($TABLES tables found)."
